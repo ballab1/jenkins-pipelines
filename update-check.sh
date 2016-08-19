@@ -1,0 +1,49 @@
+#!/bin/bash
+
+set -e
+
+export TERM=linux
+echo ''
+echo ''
+declare results=./results.txt
+echo get latest updates
+sudo /usr/bin/apt-get update >$results 2>&1
+
+echo ''
+echo show what needs done
+/usr/lib/update-notifier/apt-check --human-readable
+/usr/lib/ubuntu-release-upgrader/check-new-release -c && true
+
+echo ''
+echo ''
+echo report if we need to reboot and/or run fsck
+sudo /usr/bin/apt-get dist-upgrade -y >>$results 2>&1
+declare -a checks=('/var/lib/update-notifier/fsck-at-reboot' '/var/run/reboot-required')
+for fl in "${checks[@]}" ; do
+    echo checking $fl
+    if [[ -f $fl ]]; then
+        cat $fl
+    fi
+done
+
+echo ''
+echo ''
+echo report our linux installations
+dpkg --get-selections | grep linux
+
+declare installs=$(dpkg --get-selections | grep -e 'linux.*-4' | grep -v `uname -r | sed s/-generic//` | awk '{ print  $1 }' | tr '\n' ' ')
+if [[ -n $installs ]] ; then
+    sudo /usr/bin/apt-get remove -y $installs
+    sudo /usr/bin/apt-get purge -y $installs
+    sudo /usr/bin/apt-get autoremove -y
+    echo ''
+    echo ''
+    echo report our linux installations
+    dpkg --get-selections | grep linux
+fi
+
+echo ''
+echo ''
+echo show what was done
+cat $results
+
