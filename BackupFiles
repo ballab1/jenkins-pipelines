@@ -1,0 +1,7 @@
+
+stage 'Perform Update'
+    ws {
+      checkout scm
+      sh 'tar -cvzf cfg.tar.gz ./tarfiles.lst || true'
+      archive 'cfg.tar.gz'
+    }

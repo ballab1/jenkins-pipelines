@@ -2,5 +2,5 @@
 stage 'Perform Update'
     ws {
       checkout scm
-      sh ./update-check.sh'
+      sh './update-check.sh'
     }
