@@ -39,7 +39,7 @@ if [[ -n $installs ]] ; then
     echo ''
     echo ''
     echo report our linux installations
-    dpkg --get-selections | grep linux
+    dpkg --get-selections | grep 'linux.*-4'
 fi
 
 echo ''
