@@ -29,7 +29,7 @@ done
 echo ''
 echo ''
 echo report our linux installations
-dpkg --get-selections | grep linux
+dpkg --get-selections | grep 'linux.*-4'
 
 declare installs=$(dpkg --get-selections | grep -e 'linux.*-4' | grep -v `uname -r | sed s/-generic//` | awk '{ print  $1 }' | tr '\n' ' ')
 if [[ -n $installs ]] ; then
