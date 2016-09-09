@@ -1,11 +1,13 @@
 stage 'builder'
   node {
+    echo $param1
     deleteDir()
     echo 'done'
   }
   
 stage 'updater'
   node {
+    echo $dummy
     deleteDir()
     echo 'done again'
   }
