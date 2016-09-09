@@ -3,7 +3,7 @@
 // parallel.
 
 // Our initial list of strings we want to echo in parallel
-def stringsToEcho = ["a", "b", "c", "d"]
+//def stringsToEcho = ["a", "b", "c", "d"]
 
 // The map we'll store the parallel steps in before executing them.
 def stepsForParallel = [:]
@@ -33,6 +33,7 @@ def transformIntoStep(inputString) {
     // To do this, you need to wrap the code below in { }, and either return
     // that explicitly, or use { -> } syntax.
     return {
+        stage "${inputString}"
         node {
             echo inputString
         }
