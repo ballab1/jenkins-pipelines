@@ -1,4 +1,4 @@
-stage 'builder' {
+stage ('builder') {
   node {
     echo "${param1}"
     deleteDir()
@@ -6,7 +6,7 @@ stage 'builder' {
   }
 }
   
-stage 'updater' {
+stage ('updater') {
   node {
     echo dummy
     deleteDir()
