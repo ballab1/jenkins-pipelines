@@ -1,0 +1,11 @@
+stage 'builder'
+  node {
+    deleteDir()
+    echo 'done'
+  }
+  
+stage 'updater'
+  node {
+    deleteDir()
+    echo 'done again'
+  }
