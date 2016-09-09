@@ -4,6 +4,7 @@
 
 // Our initial list of strings we want to echo in parallel
 //def stringsToEcho = ["a", "b", "c", "d"]
+stringsToEcho = stringsToEcho.readLines()
 
 // The map we'll store the parallel steps in before executing them.
 def stepsForParallel = [:]
