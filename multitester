@@ -25,6 +25,7 @@ for (int i = 0; i < stringsToEcho.size(); i++) {
 
 // Actually run the steps in parallel - parallel takes a map as an argument,
 // hence the above.
+stage 'parallelSteps'
 parallel stepsForParallel
 
 // Take the string and echo it.
@@ -34,7 +35,6 @@ def transformIntoStep(inputString) {
     // To do this, you need to wrap the code below in { }, and either return
     // that explicitly, or use { -> } syntax.
     return {
-        stage "${inputString}"
         node {
             echo inputString
         }
