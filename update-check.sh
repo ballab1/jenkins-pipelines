@@ -7,7 +7,7 @@ echo ''
 echo ''
 declare results=./results.txt
 echo get latest updates
-sudo /usr/bin/apt-get update >$results 2>&1
+sudo /usr/bin/apt-get update -y>$results 2>&1
 
 echo ''
 echo show what needs done
