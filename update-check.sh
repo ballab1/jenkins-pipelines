@@ -36,6 +36,7 @@ if [[ -n $installs ]] ; then
     sudo /usr/bin/apt-get remove -y $installs
     sudo /usr/bin/apt-get purge -y $installs
     sudo /usr/bin/apt-get autoremove -y
+    sudo /usr/bin/apt autoremove -y
     echo ''
     echo ''
     echo report our linux installations
