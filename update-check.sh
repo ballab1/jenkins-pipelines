@@ -31,9 +31,9 @@ echo ''
 echo report our linux installations
 dpkg --get-selections | grep 'linux.*-4'
 
+set -x
 declare installs=$(dpkg --get-selections | grep -e 'linux.*-4' | grep -v `uname -r | sed s/-generic//` | awk '{ print  $1 }' | tr '\n' ' ')
 if [[ -n $installs ]]; then
-set -o verbose
     sudo /usr/bin/apt-get remove -y $installs
     sudo /usr/bin/apt-get purge -y $installs
     sudo /usr/bin/apt-get autoremove -y
