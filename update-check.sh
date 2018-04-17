@@ -1,11 +1,23 @@
 #!/bin/bash
 
-set -e
+set -o errtrace
 
 export TERM=linux
-echo ''
-echo ''
 declare results=./results.txt
+
+function onexit()
+{
+    echo ''
+    echo ''
+    echo show what was done
+    [ ! -e "$results" ] || cat $results
+}
+trap onexit ERR
+trap onexit INT
+trap onexit PIPE
+
+echo ''
+echo ''
 echo get latest updates
 sudo /usr/bin/apt-get update -y>$results 2>&1
 
@@ -42,9 +54,3 @@ if [[ -n $installs ]]; then
     echo report our linux installations
     dpkg --get-selections | grep 'linux.*-4'
 fi
-
-echo ''
-echo ''
-echo show what was done
-cat $results
-
