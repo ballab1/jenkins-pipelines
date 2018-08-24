@@ -18,9 +18,12 @@ function removeEmptyTags()
     local -r dir=${1:?}
     
     local -a dirs
+    local errors=$(mktemp)
     echo -n " checking $(basename "$dir")"
-    mapfile -t dirs < <(ls -1A "${dir}/_manifests/tags")
-    if [ ${#dirs[*]} -eq 0 ]; then
+    mapfile -t dirs < <(ls -1A "${dir}/_manifests/tags" 2> "$errors")
+    if [ "$(< "$errors")" ]; then
+        echo -n $errors 
+    elif [ ${#dirs[*]} -eq 0 ]; then
         rm -rf "$dir"
         echo -n ': deleted'
     fi
