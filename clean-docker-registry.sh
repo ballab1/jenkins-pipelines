@@ -16,13 +16,13 @@ export TERM=linux
 function removeEmptyTags()
 {
     local -r dir=${1:?}
-    
+
     local -a dirs
     local errors=$(mktemp)
     echo -n " checking $(basename "$dir")"
     mapfile -t dirs < <(ls -1A "${dir}/_manifests/tags" 2> "$errors")
     if [ "$(< "$errors")" ]; then
-        echo -n $errors 
+        echo -n $errors
     elif [ ${#dirs[*]} -eq 0 ]; then
         rm -rf "$dir"
         echo -n ': deleted'
@@ -37,10 +37,13 @@ if [[ $EUID != 0 ]]; then
 fi
 
 echo
-echo 
+echo
 declare -i status
 for dir in $(find /var/lib/docker-registry/docker/registry/v2/repositories/ -mindepth 1 -maxdepth 1 -type d -name '*' | sort); do
     removeEmptyTags "$dir"
 done
-echo 
+echo
 df
+/usr/bin/docker-registry garbage-collect /etc/docker/registry/config.yml
+df
+
