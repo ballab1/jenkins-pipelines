@@ -19,23 +19,21 @@ trap onexit PIPE
 echo ''
 echo ''
 echo get latest updates
-sudo /usr/bin/apt-get update -y>$results 2>&1
+sudo /usr/bin/apt-get update -y &>$results
 
 echo ''
 echo show what needs done
 /usr/lib/update-notifier/apt-check --human-readable
-/usr/lib/ubuntu-release-upgrader/check-new-release -c && true
+/usr/lib/ubuntu-release-upgrader/check-new-release -c || true
 
 echo ''
 echo ''
 echo report if we need to reboot and/or run fsck
-sudo /usr/bin/apt-get dist-upgrade -y >>$results 2>&1
+sudo /usr/bin/apt-get dist-upgrade -y &>>$results
 declare -a checks=('/var/lib/update-notifier/fsck-at-reboot' '/var/run/reboot-required')
 for fl in "${checks[@]}" ; do
     echo checking $fl
-    if [[ -f $fl ]]; then
-        cat $fl
-    fi
+    [ -f $fl ] && cat $fl
 done
 
 echo ''
