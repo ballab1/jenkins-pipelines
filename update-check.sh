@@ -7,8 +7,8 @@ declare results=./results.txt
 
 function onexit()
 {
-    echo ''
-    echo ''
+    echo
+    echo
     echo show what was done
     [ ! -e "$results" ] || cat $results
 }
@@ -16,18 +16,36 @@ trap onexit ERR
 trap onexit INT
 trap onexit PIPE
 
-echo ''
-echo ''
+function removeLocks()
+{
+    local pid="$(ps -efwH | grep '/usr/bin/apt-get' | grep -v 'grep' | awk '{print $2}')"
+    if [ "${pid:-}" ]; then
+        # kill any old 'apt-get' and remove locks
+        kill "$pid"
+        echo 'WARNING: removing old locks'
+        rm /var/lib/apt/lists/lock
+        rm /var/cache/apt/archives/lock
+        rm /var/lib/dpkg/lock*
+     fi
+}
+
+
+echo
+echo 'removeLocks'
+removeLocks
+
+echo
+echo
 echo get latest updates
 sudo /usr/bin/apt-get update -y &>$results
 
-echo ''
+echo
 echo show what needs done
 /usr/lib/update-notifier/apt-check --human-readable
 /usr/lib/ubuntu-release-upgrader/check-new-release -c || true
 
-echo ''
-echo ''
+echo
+echo
 echo report if we need to reboot and/or run fsck
 sudo /usr/bin/apt-get dist-upgrade -y &>>$results
 declare -a checks=('/var/lib/update-notifier/fsck-at-reboot' '/var/run/reboot-required')
@@ -36,8 +54,8 @@ for fl in "${checks[@]}" ; do
     [ -f $fl ] && cat $fl
 done
 
-echo ''
-echo ''
+echo
+echo
 echo report our linux installations
 dpkg --get-selections | grep 'linux.*-4'
 
@@ -47,8 +65,8 @@ if [[ -n $installs ]]; then
     sudo /usr/bin/apt-get purge -y $installs
     sudo /usr/bin/apt-get autoremove -y
     sudo /usr/bin/apt autoremove -y
-    echo ''
-    echo ''
+    echo
+    echo
     echo report our linux installations
     dpkg --get-selections | grep 'linux.*-4'
 fi

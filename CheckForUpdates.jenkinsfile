@@ -1,0 +1,27 @@
+
+def stepsForParallel = [:]
+
+// return a closure because we do not want 'node(..){...}' execcuted when this function is called
+def transformIntoStep(nodeName) {
+    return {
+      node(nodeName) {
+        checkout scm
+        sh "./update-check.sh"
+      }
+    }
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////
+
+stage 'Prepare'
+  node {
+      ['ubuntu-s1', 'ubuntu-s2', 'ubuntu-s3', 'ubuntu-s4'].each { name ->
+          // Into each branch we put the pipeline code we want to execute
+          stepsForParallel[name] = transformIntoStep(name)
+      }
+  }
+
+stage 'Update Checks'
+  // Actually run the steps in parallel - parallel takes a map as an argument, hence the above.
+  parallel stepsForParallel
+  failFast: true
