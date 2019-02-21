@@ -1,13 +1,18 @@
 
+ArrayList<String> nodes = ['ubuntu-s1', 'ubuntu-s2', 'ubuntu-s3', 'ubuntu-s4']
 def stepsForParallel = [:]
 
 // return a closure because we do not want 'node(..){...}' execcuted when this function is called
 def transformIntoStep(nodeName) {
     return {
-      node(nodeName) {
-        checkout scm
-        sh "./update-check.sh"
-      }
+        node(nodeName) {
+            timestamps {
+                ws {
+                    checkout scm
+                    sh "./update-check.sh"
+                }
+            }
+        }
     }
 }
 
@@ -15,7 +20,7 @@ def transformIntoStep(nodeName) {
 
 stage 'Prepare'
   node {
-      ['ubuntu-s1', 'ubuntu-s2', 'ubuntu-s3', 'ubuntu-s4'].each { name ->
+      nodes.each { name ->
           // Into each branch we put the pipeline code we want to execute
           stepsForParallel[name] = transformIntoStep(name)
       }
