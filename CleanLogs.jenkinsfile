@@ -1,0 +1,14 @@
+
+@Library('jenkins-sharedlibs')_
+
+processInParallel (
+    agent: 'master',
+    items: [ 'ubuntu-s1', 'ubuntu-s2', 'ubuntu-s3', 'ubuntu-s4', 'ubuntu-s5', 'ubuntu-s6' ],
+    process: { nodeName, body -> 
+        nodeStep(nodeName, body)
+    },
+    action: { nodeName ->
+        sh "sudo find /var/log -type f  \\( -name '*.log.[1-9].gz' -or -name '*.[0-9]' -or -name '*.[0-9].gz' \\) -print -delete"
+    },
+    topic: 'clean_docker_host'
+)

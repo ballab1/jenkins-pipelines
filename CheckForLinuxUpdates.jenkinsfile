@@ -1,0 +1,18 @@
+
+@Library('jenkins-sharedlibs')_
+
+processInParallel (
+    agent: 'master',
+    items: [ 'ubuntu-s1', 'ubuntu-s2', 'ubuntu-s3', 'ubuntu-s4', 'ubuntu-s5', 'ubuntu-s6' ],
+    process: { nodeName, body -> 
+        nodeStep(nodeName, body)
+    },
+    action: { nodeName ->
+        sh './checkForLinuxUpdates.sh "${nodeName}"'
+        script {
+            load './status.groovy'
+        }
+        archiveArtifacts allowEmptyArchive: true, artifacts: "${nodeName}.txt"
+    },
+    topic: 'check_for_updates'
+)

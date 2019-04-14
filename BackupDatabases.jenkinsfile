@@ -1,0 +1,46 @@
+@Library('jenkins-sharedlibs')_
+
+timestamps {
+    node('ubuntu-s3') {
+//        ArrayList<String> dbNames = [ 'grafana', 'kafka_data', 'nconf', 'phpmyadmin', 'zen' ]
+        ArrayList<String> dbNames = listDatabases('1a69cdbb-be20-4bde-b30a-87ef9b2db969')
+        dbNames.each { dbName ->
+            dumpDatabase(dbName, '1a69cdbb-be20-4bde-b30a-87ef9b2db969')
+        }
+
+        stage ('Update GitHub') {
+
+            // make sure 'cwd' is empty so we can run 'git clone' into workspace
+            git changelog: false, 
+                credentialsId: '935a7b57-da74-45f7-9119-5a0529afb8ae', 
+                poll: false, 
+                url: 'https://github.com/ballab1/DBMS-backup.git'
+
+
+            // get our DB bakup files
+            dbNames.each { dbName ->
+                unstash dbName
+            }
+
+            archiveArtifacts '*.sql'
+
+            // check the 'git status' to see if there are any changes  (return SUCCESS on 0-changes)
+            def porcelainStatus = sh (returnStdout: true, script: 'git status --porcelain')?.split("\\r?\\n")
+            int numberOfChanges = porcelainStatus?.findAll{ it =~ /[^\\s]+/ }.size()
+            if (numberOfChanges > 0) {
+                // update our git repo with changes
+                script {
+                    def status = sh(returnStdout: true, script: 'git status --porcelain')
+                    println status
+                    manager.addBadge('db_in.gif', status)
+                }
+                sh 'git add --all'
+                sh 'git commit --message="mysql DB updates"'
+                sh 'git push --verbose --set-upstream origin master'
+                
+                echo 'Setting build to "UNSTABLE" to indicate changes were detected.'
+                manager.buildUnstable()
+            }
+        }
+    }
+}

@@ -1,0 +1,36 @@
+pipeline {
+    agent any
+    stages {
+        stage('Generate JSON') {
+            agent {
+                docker {
+                    label 'docker-host'
+                    image 'ubuntu-s2:5000/alpine/build_container:latest'
+                }
+            }
+            steps {
+                checkout scm
+                ansiColor('xterm') {
+                    sh 'echo $HOST'
+                    sh '/usr/local/bin/registryAsJson -o registryContents.json'
+                }
+                stash includes: 'registryContents.json', name: 'json'
+                archiveArtifacts allowEmptyArchive: true, artifacts: 'registryContents.json'
+            }
+        }
+        stage('Generate Report') {
+            agent {
+                docker {
+                    label 'docker-host'
+                    image 'groovy:2.6-jre-alpine'
+                    args "-v '$WORKSPACE:/home/groovy/scripts'"
+                }
+            }
+            steps {
+                unstash 'json'
+                sh 'JSON="${WORKSPACE}/registryContents.json" groovy registryReport.groovy'
+                archiveArtifacts allowEmptyArchive: true, artifacts: 'registryReport.log'
+            }
+        }
+    }
+}

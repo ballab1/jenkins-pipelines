@@ -1,0 +1,14 @@
+
+@Library('jenkins-sharedlibs')_
+
+processInParallel (
+    agent: 'master',
+    items: [ 'ubuntu-s1', 'ubuntu-s4' ],
+    process: { nodeName, body -> 
+        nodeStep(nodeName, body)
+    },
+    action: { nodeName ->
+        sh "cd /home/bobb/production; ./deploy -l; git status"
+    },
+    topic: 'clean_docker_host'
+)

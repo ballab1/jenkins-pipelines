@@ -1,0 +1,14 @@
+
+@Library('jenkins-sharedlibs')_
+
+processInParallel (
+    agent: 'ubuntu-s2',
+    items: [ 'CleanRegistry' ],
+    process: { tarfile, body -> 
+        fixedNodeStep(tarfile, body)
+    },
+    action: { it ->
+        sh "sudo ./clean-docker-registry.sh"
+    },
+    topic: 'clean_registry'
+)

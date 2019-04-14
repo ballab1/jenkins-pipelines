@@ -1,0 +1,59 @@
+@Library('jenkins-sharedlibs')_
+
+/////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+processInParallel (
+    agent: 'master',
+    items: [ 'ubuntu-s1', 'ubuntu-s2', 'ubuntu-s3', 'ubuntu-s4' ],
+    process: { nodeName, body -> 
+        nodeStep(nodeName, body)
+    },
+    action: { nodeName ->
+        sh "./realUptime > ${nodeName}.txt"
+        archiveArtifacts "${nodeName}.txt"
+        stash includes: "${nodeName}.txt", name: nodeName
+    },
+    topic: 'check_for_updates'
+)
+
+stage ('Report Generation') {
+  agent {label 'master' }
+  steps {
+    ws {
+      def json = [:]
+      for (int i=0; i<nodes.size(); ++i) {
+         def nodeName = nodes[i];
+         unstash name: nodeName
+         def uptime = readFile("${nodeName}.txt")
+         echo "${nodeName} uptime: ${uptime}"
+         json[nodeName] = parseUptime ( uptime )
+      }
+      writeFile file: 'uptime.json', text: toJSON(json)
+      archive includes:'*.json'
+      stash includes: 'uptime.json', name: json
+    }
+  }
+}
+
+stage('Generate Report') {
+    agent {
+        docker {
+            label 'docker-host'
+            image 'groovy:2.6-jre-alpine'
+            args "-v '$WORKSPACE:/home/groovy/scripts'"
+        }
+    }
+    steps {
+        unstash 'json'
+//      def html = generateReport(json) ?: '<b>nothing returned</b>'
+//      writeFile file: 'report.html', text: html
+        archiveArtifacts allowEmptyArchive: true, artifacts: 'report.html'
+    }
+}
+
+stage ('Publish to Kafka') {
+  node {
+    kafkaPublish('uptime')
+  }
+}
