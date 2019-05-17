@@ -2,7 +2,6 @@
 
 timestamps {
     node('ubuntu-s3') {
-//        ArrayList<String> dbNames = [ 'grafana', 'kafka_data', 'nconf', 'phpmyadmin', 'zen' ]
         ArrayList<String> dbNames = listDatabases('1a69cdbb-be20-4bde-b30a-87ef9b2db969')
         dbNames.each { dbName ->
             dumpDatabase(dbName, '1a69cdbb-be20-4bde-b30a-87ef9b2db969')

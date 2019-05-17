@@ -6,13 +6,14 @@ pipeline {
                 docker {
                     label 'docker-host'
                     image 'ubuntu-s2:5000/alpine/build_container:latest'
+                    args '--add-host="ubuntu-s2:10.1.3.12" --entrypoint=""'
                 }
             }
             steps {
                 checkout scm
                 ansiColor('xterm') {
                     sh 'echo $HOST'
-                    sh '/usr/local/bin/registryAsJson -o registryContents.json'
+                    sh '/usr/local/bin/registryReport -o registryContents.json'
                 }
                 stash includes: 'registryContents.json', name: 'json'
                 archiveArtifacts allowEmptyArchive: true, artifacts: 'registryContents.json'

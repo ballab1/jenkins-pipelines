@@ -9,6 +9,7 @@ processInParallel (
     },
     action: { it ->
         sh "sudo ./clean-docker-registry.sh"
+        archiveArtifacts allowEmptyArchive: true, artifacts: 'summary.log' 
     },
     topic: 'clean_registry'
 )

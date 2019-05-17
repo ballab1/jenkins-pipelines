@@ -18,22 +18,22 @@ processInParallel (
 )
 
 stage ('Report Generation') {
-  agent {label 'master' }
-  steps {
-    ws {
-      def json = [:]
-      for (int i=0; i<nodes.size(); ++i) {
-         def nodeName = nodes[i];
-         unstash name: nodeName
-         def uptime = readFile("${nodeName}.txt")
-         echo "${nodeName} uptime: ${uptime}"
-         json[nodeName] = parseUptime ( uptime )
-      }
-      writeFile file: 'uptime.json', text: toJSON(json)
-      archive includes:'*.json'
-      stash includes: 'uptime.json', name: json
+    agent {label 'master' }
+    steps {
+        ws {
+            def json = [:]
+            for (int i=0; i<nodes.size(); ++i) {
+                def nodeName = nodes[i];
+                unstash name: nodeName
+                def uptime = readFile("${nodeName}.txt")
+                echo "${nodeName} uptime: ${uptime}"
+                json[nodeName] = parseUptime ( uptime )
+            }
+            writeFile file: 'uptime.json', text: toJSON(json)
+            archive includes:'*.json'
+            stash includes: 'uptime.json', name: json
+        }
     }
-  }
 }
 
 stage('Generate Report') {
@@ -52,8 +52,3 @@ stage('Generate Report') {
     }
 }
 
-stage ('Publish to Kafka') {
-  node {
-    kafkaPublish('uptime')
-  }
-}

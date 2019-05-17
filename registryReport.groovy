@@ -23,6 +23,9 @@ class RepoEntry {
         }
         out
     }
+    int getNumTags() {
+        tags.size()
+    }
 }
 
 class RepoContents {
@@ -38,12 +41,20 @@ class RepoContents {
         }
     }
 
-    int size() {
+    int getNumTags() {
+        int count = 0
+        digests.each { it ->
+            count += it.numTags
+        }
+        return count
+    }
+
+    int getNumImages() {
         digests.size()
     }
 
     String toString() {
-        String out = id + ', ' + name + ', Images: ' + digests.size() + '\n'
+        String out = id + ', ' + name + ', Images: ' + numImages + ', Tags: ' + numTags + '\n'
         digests.sort().each { k ->
             out += k.toString() + '\n'
         }

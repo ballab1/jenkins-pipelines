@@ -5,33 +5,71 @@
 function removeEmptyTags()
 {
     local dir=${1:?}
-
     while read -r dir; do
+        # ignore folder if it is a special registry folder
         [ $dir = _layers ] && continue
         [ $dir = _manifest ] && continue
         [ $dir = _uploads ] && continue
 
         local -a other
+
+        # recurse into subfolders if there are any
         mapfile -t other < <( ls -1A "$dir" | grep -vE '_manifests|_uploads|_layers' )
         [ "${#other[*]}" -eq 0 ] || removeEmptyTags "$dir"
 
+        # verify that there are only registry folders (skip if these do not exist)
         mapfile -t other < <( ls -1A "$dir" | grep -E '_manifests|_uploads|_layers' )
         [ "${#other[*]}" -gt 0 ] || continue
 
-        [ -d "${dir}/_manifests/revisions" ] && [ -d "${dir}/_manifests/tags" ] || continue
-        [ $(ls -1A "${dir}/_manifests/tags" | wc -l) -eq 0 ] || continue
+        # verify that there are only registry folders
+        if [ -d "${dir}/_manifests" ]; then
+            [ -d "${dir}/_manifests/revisions" ] && [ -d "${dir}/_manifests/tags" ] || continue
+            [ $(ls -1A "${dir}/_manifests/tags" | wc -l) -eq 0 ] || continue
+            rm -rf "${dir}/_manifests"
+        fi
 
-        rm -rf "${dir}/_manifests"
+        # remove this folder
         rm -rf "${dir}/_layers"
         rm -rf "${dir}/_uploads"
-        echo "$dir : deleted"
-
         [ $(ls -1A "${dir}/" | wc -l) -eq 0 ] || continue
+
+        echo "$dir : deleted"
+        removedRepos+=( ${dir:2} )
         rmdir "${dir}"
 
     done < <(find "$dir" -mindepth 1 -maxdepth 1 -type d | sort)
 }
 
+#############################################################################################
+function kafkaJson()
+{
+    echo -n '{ "blocksAtStart": '$blocksAtStart', '
+    echo -n '"blocksAfterGC": '$blocksAfterGC', '
+    echo -n '"blocksAfterRemovingEmptyTags": '$blocksAfterRemovingEmptyTags', '
+    echo -n '"blocksRecovered": '$blocksRecovered', '
+    echo '"deletedRepos": '${#removedRepos[*]}' }'
+}
+
+#############################################################################################
+function show_summary()
+{
+    echo
+    echo
+    df
+
+    echo
+    echo
+    echo "blocks at start:                   $blocksAtStart"
+    echo "blocks after GC:                   $blocksAfterGC"
+    echo "blocks after removing empty tags:  $blocksAfterRemovingEmptyTags"
+    echo "blocks recovered:  $(( blocksAfterRemovingEmptyTags - blocksAtStart ))"
+    echo "repository directories deleted:    ${#removedRepos[*]}"
+    if [ "${#removedRepos[*]}" -gt 0 ]; then
+        echo 'Removed repositories:'
+        printf '    %s\n' "${removedRepos[@]}"
+    fi
+    echo
+}
 #############################################################################################
 
 # Use the Unofficial Bash Strict Mode
@@ -51,28 +89,23 @@ if [[ $EUID != 0 ]]; then
   exit
 fi
 
-declare -i blocksAtStart=$(df /dev/sdb1 | sed '1d' | awk '{print $4}')
+declare -i blocksAtStart blocksAfterGC blocksAfterRemovingEmptyTags
+declare -a removedRepos=()
+
+blocksAtStart=$(df /dev/sdb1 | sed '1d' | awk '{print $4}')
 
 echo
 echo
 echo
 /usr/bin/docker-registry garbage-collect /etc/docker/registry/config.yml
-declare -i blocksAfterGC=$(df /dev/sdb1 | sed '1d' | awk '{print $4}')
+blocksAfterGC=$(df /dev/sdb1 | sed '1d' | awk '{print $4}')
 
 echo
 echo
-removeEmptyTags '/var/lib/docker-registry/docker/registry/v2/repositories'
-declare -i blocksAfterRemovingEmptyTags=$(df /dev/sdb1 | sed '1d' | awk '{print $4}')
+pushd '/var/lib/docker-registry/docker/registry/v2/repositories'
+removeEmptyTags '.'
+popd
+blocksAfterRemovingEmptyTags=$(df /dev/sdb1 | sed '1d' | awk '{print $4}')
 
-
-echo
-echo
-df
-
-echo
-echo
-echo "blocks at start:                   $blocksAtStart"
-echo "blocks after GC:                   $blocksAfterGC"
-echo "blocks after removing empty tags:  $blocksAfterRemovingEmptyTags"
-echo "blocks recovered:  $(( blocksAfterRemovingEmptyTags - $blocksAtStart ))"
-echo
+show_summary | tee summary.log
+chmod 666 summary.log
