@@ -59,11 +59,11 @@ function show_summary()
 
     echo
     echo
-    echo "blocks at start:                   $blocksAtStart"
-    echo "blocks after GC:                   $blocksAfterGC"
-    echo "blocks after removing empty tags:  $blocksAfterRemovingEmptyTags"
-    echo "blocks recovered:  $(( blocksAfterRemovingEmptyTags - blocksAtStart ))"
-    echo "repository directories deleted:    ${#removedRepos[*]}"
+    echo "available blocks at start:                   $blocksAtStart"
+    echo "available blocks after GC:                   $blocksAfterGC"
+    echo "available blocks after removing empty tags:  $blocksAfterRemovingEmptyTags"
+    echo "blocks recovered:                            $(( blocksAfterRemovingEmptyTags - blocksAtStart ))"
+    echo "repository directories deleted:              ${#removedRepos[*]}"
     if [ "${#removedRepos[*]}" -gt 0 ]; then
         echo 'Removed repositories:'
         printf '    %s\n' "${removedRepos[@]}"

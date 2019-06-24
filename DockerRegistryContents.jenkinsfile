@@ -23,14 +23,14 @@ pipeline {
             agent {
                 docker {
                     label 'docker-host'
-                    image 'groovy:2.6-jre-alpine'
-                    args "-v '$WORKSPACE:/home/groovy/scripts'"
+                    image 'ubuntu-s2:5000/alpine/groovy:2.6-jre'
+                    args "-v '${WORKSPACE}:/home/groovy/scripts'"
                 }
             }
             steps {
                 unstash 'json'
                 sh 'JSON="${WORKSPACE}/registryContents.json" groovy registryReport.groovy'
-                archiveArtifacts allowEmptyArchive: true, artifacts: 'registryReport.log'
+                archiveArtifacts allowEmptyArchive: true, artifacts: 'registryReport.txt'
             }
         }
     }

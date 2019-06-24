@@ -1,6 +1,7 @@
 /home/bobb/.inf
 /home/bobb/.profile
 /home/bobb/.ssh/known_hosts
+/home/bobb/.work
 /home/bobb/bin
 /etc/apt
 /etc/bash.bashrc
@@ -38,4 +39,3 @@
 /etc/samba
 /etc/sudoers
 /etc/sudoers.d
-y

@@ -3,13 +3,13 @@
 
 processInParallel (
     agent: 'master',
-    items: [ 'ubuntu-s1', 'ubuntu-s2', 'ubuntu-s3', 'ubuntu-s4', 'ubuntu-s5' ],
+    items: activeNodes(),
     process: { nodeName, body -> 
         nodeStep(nodeName, body)
     },
     action: { nodeName ->
         def tarfile = nodeName + '.cfg.tgz'
-        sh "tar -cvzf ${tarfile} ./tarfiles.lst || true"
+        sh "tar -cvzf ${tarfile} ./tarfiles.lst ||:"
         sh "sudo cp ${tarfile} /home/bobb/xsrc" 
         archiveArtifacts "${tarfile}" 
     },

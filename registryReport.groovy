@@ -1,21 +1,23 @@
 import groovy.json.*
 
 import java.awt.AttributeValue
-//import java.util.Comparator
+import java.text.SimpleDateFormat
 import java.util.Map
 
-import org.codehaus.groovy.tools.shell.util.Logger
 
 class RepoEntry {
     String digest
     String createTime
     ArrayList<String> tags = []
 
+    //-------------------------------------
     RepoEntry(Object data) {
         digest = data.digest
         createTime = data.createTime
         tags = data.tags
     }
+
+    //-------------------------------------
     String toString() {
         String out = '       ' + digest + ', ' + createTime + '\n'
         tags.sort().each { k ->
@@ -23,6 +25,8 @@ class RepoEntry {
         }
         out
     }
+
+    //-------------------------------------
     int getNumTags() {
         tags.size()
     }
@@ -33,6 +37,7 @@ class RepoContents {
     String id
     ArrayList<RepoEntry> digests = []
 
+    //-------------------------------------
     RepoContents(Object data) {
         name = data.repository
         id = data.id
@@ -41,6 +46,7 @@ class RepoContents {
         }
     }
 
+    //-------------------------------------
     int getNumTags() {
         int count = 0
         digests.each { it ->
@@ -49,103 +55,101 @@ class RepoContents {
         return count
     }
 
+    //-------------------------------------
     int getNumImages() {
         digests.size()
     }
 
-    String toString() {
-        String out = id + ', ' + name + ', Images: ' + numImages + ', Tags: ' + numTags + '\n'
-        digests.sort().each { k ->
+    //-------------------------------------
+    String report() {
+        String out = this.summary()
+        digests.sort{it.createTime}.each { k ->
             out += k.toString() + '\n'
         }
         out
     }
+
+    //-------------------------------------
+    String summary() {
+        return String.format('%4s: %-37s  Images: %-4s Tags: %3d\n', id, name+',', numImages+',', numTags)
+    }
 }
 
-class RegistryData {
+class JsonData {
     String base
-    def log
     ArrayList<RepoContents> repos = []
 
-    RegistryData() {
-        base = System.getenv('BASE') ?: '/home/groovy/scripts'
-        log = Logger.create(getClass())
-        Map json = readJson(System.getenv('JSON'))
+    //-------------------------------------
+    JsonData(String jsonFile) {
+        Map json = readJson(jsonFile)
         parser(json)
     }
 
     //-------------------------------------
-
-    private void dumpHash(Object data, File file) {
-        if (data) {
-    //        println  "saving ${file.absolutePath}"
-            if (file.exists()) file.delete()
-            def bldr = new JsonBuilder(data)
-            file << bldr.toString()
-       }
-    }
-
-    //-------------------------------------
-
-    private def cleanup(File dir) {
-        try {
-            println "Cleaning up ${dir.absolutePath}"
-            if (dir.exists()) {
-                // delete old files
-                dir.eachFileRecurse { file ->
-                    if (file.isDirectory()) cleanup(file)
-                    if (! file.delete())   println "failed to delete: ${file.absolutePath}"
-                }
-            }
-        }
-        catch(Exception e) {
-            println e.message
-        }
-    }
-    //-------------------------------------
-
-    private def writeJson(int idx, Map chunk)
+    private int getNumImages()
     {
-        def bldr = new JsonBuilder(chunk)
-        String id = String.format('%02d', idx)
-        def file = new File(base, "cyclone.chunk.${id}.json")
-        file << bldr.toString()
+        int imageCount = 0
+        repos.each { r ->
+            imageCount += r.numImages
+        }
+        return imageCount
     }
+
     //-------------------------------------
-
-
-
-    def readJson(String filename) {
-
-        filename = filename ?: "${base}/registryReport.json"
-        def jsonFileData = new File(filename)
-
-        def slurper = new JsonSlurper()
-        slurper.parseText('{"data":'+jsonFileData.text+'}')
+    private int getNumRepos()
+    {
+        return repos.size()
     }
 
+    //-------------------------------------
+    private int getNumTags()
+    {
+        int tagCount = 0
+        repos.each { r ->
+            tagCount += r.numTags
+        }
+        return tagCount
+    }
+
+    //-------------------------------------
     def parser(Map json) {
         json.data.each { k ->
             repos += new RepoContents(k)
         }
     }
 
-    String toString() {
-        String out = ''
+    //-------------------------------------
+    def readJson(String filename) {
+        def jsonFileData = new File(filename)
+
+        def slurper = new JsonSlurper()
+        slurper.parseText('{"data":'+jsonFileData.text+'}')
+    }
+
+    //-------------------------------------
+    String report() {
+        def date = new Date()
+        def sdf = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss")
+        String out = '\nDate:  ' + sdf.format(date)
+        out += '\n\nTotal number of repos:  ' + numRepos
+        out += '\nTotal number of images: ' + numImages
+        out += '\nTotal number of tags:   ' + numTags
+        out += '\n\n===============================================================================\n'
+        out += this.toString()
+        out += '\n\n===============================================================================\n'
         repos.each { r ->
-             out += r.toString()
+            out += r.report()
         }
         out
     }
 
-    def removeOldFiles() {
-        def dir = new File(base)
-        dir.eachFileRecurse { file ->
-            if (file.name =~ /cyclone\.chunk\..+\.json/){
-                if (! file.delete())   println "failed to delete: ${file.absolutePath}"
-            }
+    //-------------------------------------
+    String toString() {
+        String out = 'Summary:\n'
+        repos.each { r ->
+            out += r.summary()
         }
-
+        out
     }
 }
 
@@ -155,13 +159,16 @@ class RegistryData {
 //
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-def processor = new RegistryData()
-def out = new File('/home/groovy/scripts/registryReport.txt')
+def base = System.getenv('BASE') ?: '/home/groovy/scripts'
+def jsonFile = System.getenv('JSON') ?: "${base}/registryReport.json"
+
+def processor = new JsonData(jsonFile)
+def out = new File("${base}/registryReport.txt")
 if ( out.exists() ) {
     out.delete()
 }
-out << processor.toString()
+out << processor.report()
 
-println 'done.'
+//println 'done.'
 
 ''

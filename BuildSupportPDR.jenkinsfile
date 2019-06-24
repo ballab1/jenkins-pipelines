@@ -26,6 +26,7 @@ timestamps {
                                                        url: 'https://github.com/ballab1/support']
                                                      ]
                     ])
+                    sh "git submodule foreach git checkout ${BRANCH}"
         }    
         stage('Build') {
             try {
@@ -36,9 +37,7 @@ timestamps {
                     deleteDir()
                 }
                 ansiColor('xterm') {
-                    sh """git checkout ${BRANCH}
-                          ./build.sh ${vars}
-                       """
+                    sh "./build.sh ${vars}"
                 }
             }
             finally {

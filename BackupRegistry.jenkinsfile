@@ -5,8 +5,9 @@ timestamps {
         stage ('Backup Registry') {
             def src='/var/lib/docker-registry/docker/registry/v2/'
             def dst='/media/Guest/Docker-Registry'
-            sh "sudo rsync --itemize-changes --links --recursive --force --stats ${src} ${dst}"
 //            sh "sudo rsync --itemize-changes --links --recursive --force --stats ${src} ${dst}"
+            sh "sudo rsync --archive --force --stats ${src} ${dst} | tee rsync.log"
+            archiveArtifacts artifacts: 'rsync.log' 
         }
     }
 }
