@@ -1,0 +1,29 @@
+@Library('jenkins-sharedlibs')_
+
+/////////////////////////////////////////////////////////////////////////////////////////////////
+
+pipeline {
+  agent { label 'master' }
+
+  stages {
+    stage ('ubuntu-s4') {
+      agent { label 'ubuntu-s4' }
+      steps {
+        ansiColor('xterm') {
+	  sh '''
+              cd /home/bobb/nagios-deploy
+#              git reset --hard HEAD~1
+	      git pull --recurse-submodules
+	      ./deploy -l
+	  '''
+        }
+      }
+    }
+  }
+  post {
+    always {
+        echo 'Publish to Kafka'
+        kafkaPublish('nagios_deploy')
+    }
+  }
+} 
