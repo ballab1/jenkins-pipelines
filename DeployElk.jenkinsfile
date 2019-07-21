@@ -10,12 +10,7 @@ pipeline {
       agent { label 'ubuntu-s5' }
       steps {
         ansiColor('xterm') {
-	  sh '''
-              cd /home/bobb/elk-deploy
-#              git reset --hard HEAD~1
-	      git pull --recurse-submodules
-	      ./deploy -l
-	  '''
+	  updateWorkspace ('/home/bobb/elk-deploy', ['./deploy', '-l'])
         }
       }
     }
