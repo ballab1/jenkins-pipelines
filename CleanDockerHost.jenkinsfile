@@ -8,7 +8,7 @@ processInParallel (
         nodeStep(nodeName, body)
     },
     action: { nodeName ->
-        sh "./rmOldContainers"
+        sh 'bin/docker-utilities clean'
     },
     topic: 'clean_docker_host'
 )
