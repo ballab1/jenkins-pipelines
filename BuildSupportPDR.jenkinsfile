@@ -1,48 +1,81 @@
-timestamps {
+@Library('jenkins-sharedlibs')_
 
-    def BRANCH='dev'
-    println "checking out ${BRANCH}"
+/////////////////////////////////////////////////////////////////////////////////////////////////
 
-    node('ubuntu-s4') {
-        stage('Prepare Workspace') {
+pipeline {
+  agent { label 'ubuntu-s4' }
+  options {
+    buildDiscarder(logRotator(numToKeepStr: '20'))
+    disableResume()
+    timestamps()
+  }
+  parameters {
+    booleanParam(name: 'Always_Build', defaultValue: false, description: 'Always build images')
+    booleanParam(name: 'Always_Push', defaultValue: false, description: 'Always push images to registry')
+    string(name: 'BRANCH', defaultValue: 'dev', description: 'Branch to check')
+  }
+  triggers {
+    GenericTrigger(
+      causeString: 'Triggered by a change to $reponame',
+      genericVariables: [
+        [key: 'reponame', value: '$.repository.name'],
+        [key: 'ref', value: '$.ref']
+      ],
+      printContributedVariables: true,
+      silentResponse: false,
+      regexpFilterText: reponame + '_' + ref,
+      regexpFilterExpression: '^support_refs/heads/'+params.BRANCH
+    )
+  }
 
-            deleteDir()
-            
-            // make sure 'cwd' is empty so we can run 'git clone' into workspace
-            checkout([$class: 'GitSCM',
-                      branches: [[name: "*/${BRANCH}"]], 
-                                  doGenerateSubmoduleConfigurations: false, 
-                                  extensions: [[$class: 'LocalBranch', localBranch: "${BRANCH}"],
-                                               [$class: 'GitLFSPull'], 
-                                               [$class: 'SubmoduleOption', 
-                                                disableSubmodules: false, 
-                                                parentCredentials: true, 
-                                                recursiveSubmodules: true, 
-                                                reference: '', 
-                                                trackingSubmodules: true]
-                                               ],
-                                  submoduleCfg: [],
-                                  userRemoteConfigs: [[credentialsId: '935a7b57-da74-45f7-9119-5a0529afb8ae',
-                                                       url: 'https://github.com/ballab1/support']
-                                                     ]
-                    ])
-                    sh "git submodule foreach git checkout ${BRANCH}"
-        }    
-        stage('Build') {
-            try {
-                def vars = ''
-                if ( Always_Build == 'true' ) { vars += ' --force' }
-                if ( Always_Push == 'true' ) { vars += ' --push' }
-                dir('logs') {
-                    deleteDir()
+  stages {
+      stage('Prepare Workspace') {
+          steps {
+              echo "checking out ${params.BRANCH}"
+              deleteDir()
+              
+              // make sure 'cwd' is empty so we can run 'git clone' into workspace
+              checkout([$class: 'GitSCM',
+                        branches: [[name: "*/${params.BRANCH}"]], 
+                                    doGenerateSubmoduleConfigurations: false, 
+                                    extensions: [[$class: 'LocalBranch', localBranch: "${params.BRANCH}"],
+                                                 [$class: 'GitLFSPull'], 
+                                                 [$class: 'SubmoduleOption', 
+                                                  disableSubmodules: false, 
+                                                  parentCredentials: true, 
+                                                  recursiveSubmodules: true, 
+                                                  reference: '', 
+                                                  trackingSubmodules: true]
+                                                 ],
+                                    submoduleCfg: [],
+                                    userRemoteConfigs: [[credentialsId: '935a7b57-da74-45f7-9119-5a0529afb8ae',
+                                                         url: 'https://github.com/ballab1/support']
+                                                       ]
+                      ])
+              sh "git submodule foreach git checkout ${params.BRANCH}"
+          }
+      }    
+      stage('Build') {
+          steps {
+              dir('logs') {
+                  deleteDir()
+              }
+              ansiColor('xterm') {
+                script {
+                  def vars = ''
+                  if ( Always_Build == 'true' ) { vars += ' --force' }
+                  if ( Always_Push == 'true' ) { vars += ' --push' }
+                  sh "./build.sh ${vars}"
                 }
-                ansiColor('xterm') {
-                    sh "./build.sh ${vars}"
-                }
-            }
-            finally {
-                archiveArtifacts allowEmptyArchive: true, artifacts: 'logs/*'
-            }
-        }
+              }
+              archiveArtifacts allowEmptyArchive: true, artifacts: 'logs/*'
+          }
+      }
+  }
+  post {
+    always {
+        echo 'Publish to Kafka'
+        kafkaPublish('updateRepoDirs')
     }
+  }
 }

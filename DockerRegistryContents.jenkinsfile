@@ -1,5 +1,10 @@
 pipeline {
-    agent any
+    agent { label 'docker-host' }
+    options {
+        buildDiscarder(logRotator(numToKeepStr: '20'))
+        disableResume()
+        timestamps()
+    }
     stages {
         stage('Generate JSON') {
             agent {
@@ -12,7 +17,7 @@ pipeline {
             steps {
                 checkout scm
                 ansiColor('xterm') {
-                    sh './docker-utilities report -o registryContents.json'
+                    sh 'bin/docker-utilities report --format json --output registryContents.json'
                 }
                 stash includes: 'registryContents.json', name: 'json'
                 archiveArtifacts allowEmptyArchive: true, artifacts: 'registryContents.json'
@@ -23,14 +28,14 @@ pipeline {
                 docker {
                     label 'docker-host'
                     image 'ubuntu-s2:5000/alpine/groovy:2.6-jre'
-                    args "-v '${WORKSPACE}:/home/groovy/scripts'"
+                    args "-v '${WORKSPACE}/bin:/home/groovy/scripts'"
                 }
             }
             steps {
                 unstash 'json'
                 sh 'JSON="${WORKSPACE}/registryContents.json" groovy registryReport.groovy'
-                archiveArtifacts allowEmptyArchive: true, artifacts: 'registryReport.txt'
-                sh 'rm registryReport.txt registryContents.json'
+                archiveArtifacts allowEmptyArchive: true, artifacts: 'bin/registryReport.txt'
+                sh 'rm bin/registryReport.txt registryContents.json'
             }
         }
     }

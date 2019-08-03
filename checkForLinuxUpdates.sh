@@ -13,6 +13,7 @@ function onexit()
 {
     echo
     echo
+    [ -e "$results" ] || return 0
     echo 'show what was done'
     cat "$results"
     mv "$results" "$nodeName.txt"
@@ -32,8 +33,8 @@ function latestUpdates()
 
 function main()
 {
-    :> $results
-    :> $status
+    :> "$results"
+    :> "$status"
 
     removeLocks
     showWhatNeedsDone

@@ -8,6 +8,11 @@ pipeline {
 	    image 'ubuntu-s2:5000/alpine/jenkinsci/slave:3.16.1'
         }
     }
+    options {
+        buildDiscarder(logRotator(numToKeepStr: '20'))
+        disableResume()
+        timestamps()
+    }
     stages {
         stage('checkout git') {
             steps {

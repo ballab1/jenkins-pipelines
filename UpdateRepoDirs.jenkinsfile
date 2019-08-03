@@ -1,0 +1,94 @@
+@Library('jenkins-sharedlibs')_
+
+/////////////////////////////////////////////////////////////////////////////////////////////////
+
+pipeline {
+  agent { label 'master' }
+  options {
+    buildDiscarder(logRotator(numToKeepStr: '20'))
+    disableResume()
+    timestamps()
+  }
+  triggers {
+    GenericTrigger(
+      causeString: 'Triggered by a change to $reponame',
+      genericVariables: [
+        [key: 'reponame', value: '$.repository.name']
+      ],
+//      printContributedVariables: true,
+      silentResponse: false,
+      regexpFilterText: '$reponame',
+      regexpFilterExpression: '^((?!support))'
+    )
+  }
+
+  stages {
+    stage ('master') {
+      agent { label 'master' }
+      steps {
+          updateRepoDirs reponame
+          stash name: 'dirspecs', allowEmpty: true, includes: '*.dirs'
+      }
+    }
+    stage ('ubuntu-s1') {
+      agent { label 'ubuntu-s1' }
+      steps {
+          unstash 'dirspecs'
+          sh returnStatus: true, script: './updateWorkspace.sh'
+          stash name: 'ubuntu-s1', allowEmpty: true, includes: '*.inf'
+      }
+    }
+    stage ('ubuntu-s2') {
+      agent { label 'ubuntu-s2' }
+      steps {
+          unstash 'dirspecs'
+          sh returnStatus: true, script: './updateWorkspace.sh'
+          stash name: 'ubuntu-s2', allowEmpty: true, includes: '*.inf'
+      }
+    }
+    stage ('ubuntu-s3') {
+      agent { label 'ubuntu-s3' }
+      steps {
+          unstash 'dirspecs'
+          sh returnStatus: true, script: './updateWorkspace.sh'
+          stash name: 'ubuntu-s3', allowEmpty: true, includes: '*.inf'
+      }
+    }
+    stage ('ubuntu-s4') {
+      agent { label 'ubuntu-s4' }
+      steps {
+          unstash 'dirspecs'
+          sh returnStatus: true, script: './updateWorkspace.sh'
+          stash name: 'ubuntu-s4', allowEmpty: true, includes: '*.inf'
+      }
+    }
+    stage ('ubuntu-s5') {
+      agent { label 'ubuntu-s5' }
+      steps {
+          unstash 'dirspecs'
+          sh returnStatus: true, script: './updateWorkspace.sh'
+          stash name: 'ubuntu-s5', allowEmpty: true, includes: '*.inf'
+      }
+    }
+    stage ('ubuntu-s6') {
+      agent { label 'ubuntu-s6' }
+      steps {
+          unstash 'dirspecs'
+          sh returnStatus: true, script: './updateWorkspace.sh'
+          stash name: 'ubuntu-s6', allowEmpty: true, includes: '*.inf'
+      }
+    }
+    stage ('report') {
+      agent any
+      steps {
+          repoDirReults()         
+      }
+    }
+  }
+  post {
+    always {
+        echo 'Publish to Kafka'
+        kafkaPublish('updateRepoDirs')
+    }
+  }
+} 

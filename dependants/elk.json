@@ -1,0 +1,8 @@
+{
+  "ubuntu-s4": [
+    "/home/bobb/GIT/elk-deploy"
+  ],
+  "ubuntu-s6": [
+    "/home/bobb/elk-deploy"
+  ]
+}

@@ -4,6 +4,11 @@
 
 pipeline {
   agent { label 'master' }
+  options {
+    buildDiscarder(logRotator(numToKeepStr: '20'))
+    disableResume()
+    timestamps()
+  }
 
   stages {
     stage ('ubuntu-s4') {
