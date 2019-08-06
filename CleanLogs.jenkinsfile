@@ -9,6 +9,5 @@ processInParallel (
     },
     action: { nodeName ->
         sh "sudo find /var/log -type f  \\( -name '*.log.[1-9].gz' -or -name '*.[0-9]' -or -name '*.[0-9].gz' \\) -print -delete"
-    },
-    topic: 'clean_docker_host'
+    }
 )

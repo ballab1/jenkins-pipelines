@@ -38,8 +38,7 @@ pipeline {
   }
   post {
     always {
-        echo 'Publish to Kafka'
-        kafkaPublish('kafka_deploy')
+        kafkaBuildReporter()
     }
   }
 } 

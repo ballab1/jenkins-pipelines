@@ -6,6 +6,7 @@ pipeline {
   agent { label 'master' }
   options {
     buildDiscarder(logRotator(numToKeepStr: '20'))
+    lock resource: 'update_repo_dirs_lock'
     disableResume()
     timestamps()
   }
@@ -87,8 +88,7 @@ pipeline {
   }
   post {
     always {
-        echo 'Publish to Kafka'
-        kafkaPublish('updateRepoDirs')
+        kafkaBuildReporter()
     }
   }
 } 

@@ -15,6 +15,5 @@ processInParallel (
             load './status.groovy'
         }
         archiveArtifacts allowEmptyArchive: true, artifacts: "${nodeName}.txt"
-    },
-    topic: 'check_for_updates'
+    }
 )

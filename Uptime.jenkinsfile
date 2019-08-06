@@ -6,6 +6,7 @@ pipeline {
     agent { label 'master' }
     options {
         buildDiscarder(logRotator(numToKeepStr: '20'))
+        disableConcurrentBuilds()
         disableResume()
         timestamps()
     }
@@ -59,8 +60,7 @@ pipeline {
     }
     post {
         always {
-            echo 'Publish to Kafka'
-            kafkaPublish('uptime')
+            kafkaBuildReporter()
         }
     }
 }

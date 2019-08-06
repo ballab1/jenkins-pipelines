@@ -12,6 +12,5 @@ processInParallel (
         sh "tar -cvzf ${tarfile} ./tarfiles.lst ||:"
         sh "sudo cp ${tarfile} /home/bobb/xsrc" 
         archiveArtifacts "${tarfile}" 
-    },
-    topic: 'backup_config_files'
+    }
 )

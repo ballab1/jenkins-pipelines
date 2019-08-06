@@ -9,6 +9,5 @@ processInParallel (
     },
     action: { nodeName ->
         sh 'bin/docker-utilities clean'
-    },
-    topic: 'clean_docker_host'
+    }
 )

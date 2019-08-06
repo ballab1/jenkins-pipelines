@@ -17,8 +17,7 @@ pipeline {
   }
   post {
     always {
-        echo 'Publish to Kafka'
-        kafkaPublish('elk_deploy')
+        kafkaBuildReporter()       
     }
   }
 } 

@@ -11,6 +11,5 @@ processInParallel (
         sh "cd /home/bobb/production/workspace.production/www; tar czf '${WORKSPACE}/${tarfile}' recipes ||:"
         sh "sudo cp '${WORKSPACE}/${tarfile}' /home/bobb/xsrc/"
         archiveArtifacts tarfile
-    },
-    topic: 'backup_recipes'
+    }
 )
