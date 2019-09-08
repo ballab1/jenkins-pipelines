@@ -27,8 +27,15 @@ function latestUpdates()
     echo
     echo
     echo 'get latest updates'
-    sudo /usr/bin/apt-get update -y &>> "$results"
-    sudo /usr/bin/apt-get dist-upgrade -y &>> "$results"
+    local -i status
+    local msg
+    msg=$(sudo /usr/bin/apt-get update -y 2>&1) && status=$? || status=$?
+    echo $msg >> "$results"
+    msg=$(sudo /usr/bin/apt-get dist-upgrade -y 2>&1) && status=$? || status=$?
+    echo $msg >> "$results"
+#    if [[ $msg = *'sudo dpkg --configure -a'* ]]; then
+#        :
+#    fi
 }
 
 function main()
@@ -36,6 +43,9 @@ function main()
     :> "$results"
     :> "$status"
 
+    echo "    checking for linux updates on: $(hostname -s)"
+    echo "    current directory: $(pwd)"
+    env | sort
     removeLocks
     showWhatNeedsDone
     latestUpdates
@@ -48,16 +58,18 @@ function removeLocks()
 {
     echo
     echo 'removeLocks'
-    local pid="$(ps -efwH | grep '/usr/bin/apt-get' | grep -v 'grep' | awk '{print $2}')"
-    if [ "${pid:-}" ]; then
+    local -a pids
+    mapfile -t pids < <(ps -efwH | grep '/usr/bin/apt-get' | grep -v 'grep' | awk '{print $2}')
+    local pid
+    if [ "${#pids[*]}" -gt 0 ]; then
         # kill any old 'apt-get' and remove locks
-        kill "$pid"
+        sudo kill $(printf '%s ' "${pids[@]}")
         echo 'WARNING: removing old locks'
-        rm /var/lib/apt/lists/lock
-        rm /var/cache/apt/archives/lock
-        rm /var/lib/dpkg/lock*
+        sudo rm /var/lib/apt/lists/lock
+        sudo rm /var/cache/apt/archives/lock
+        sudo rm /var/lib/dpkg/lock*
         updateStatus "addErrorBadge('${nodeName}: removed locks')"
-     fi
+    fi
 }
 
 function removeOldLinux()
@@ -99,10 +111,9 @@ function showLinuxVersions()
 function showWhatNeedsDone()
 {
     local text
-
+set -x
     echo
     echo 'show what needs done'
-
     text=$(/usr/lib/update-notifier/apt-check --human-readable) || :
     echo "$text"
     text=$(grep 'packages can be updated.' <<< "$text" ||:)
@@ -112,6 +123,7 @@ function showWhatNeedsDone()
     echo "$text"
     local txt=$(grep 'New release' <<< "$text" ||:)
     [ -z "$txt" ] || updateStatus "addBadge('yellow.gif','${nodeName}: ${txt}')"
+set +x
 }
 
 function updateStatus()

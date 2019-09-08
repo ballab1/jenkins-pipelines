@@ -5,7 +5,7 @@ pipeline {
     agent {
         docker {
             label 'docker-host'
-	    image 'ubuntu-s2:5000/alpine/jenkinsci/slave:3.16.1'
+	    image 'ubuntu-s2:5000/thirdparty/jenkinsci/slave:3.16.1-alpine'
         }
     }
     options {

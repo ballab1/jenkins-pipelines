@@ -28,10 +28,10 @@
     "/home/bobb/kafka-deploy/bin"
   ],
   "ubuntu-s5": [
-    "/home/bobb/bin/utilities",
-    "/home/bobb/elk-deploy/bin"
+    "/home/bobb/bin/utilities"
   ],
   "ubuntu-s6": [
-    "/home/bobb/bin/utilities"
+    "/home/bobb/bin/utilities",
+    "/home/bobb/elk-deploy/bin"
   ]
 }
