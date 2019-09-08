@@ -47,7 +47,7 @@ pipeline {
           agent {
                docker {
                    label 'docker-host'
-                   image 'ubuntu-s2:5000/alpine/groovy:2.6-jre'
+                   image 'ubuntu-s2:5000/thirdparty/groovy:2.6-jre'
                }
           }
           steps {

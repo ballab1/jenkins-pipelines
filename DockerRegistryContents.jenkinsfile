@@ -2,6 +2,7 @@ pipeline {
     agent { label 'docker-host' }
     options {
         buildDiscarder(logRotator(numToKeepStr: '20'))
+        disableConcurrentBuilds()
         disableResume()
         timestamps()
     }
@@ -27,7 +28,7 @@ pipeline {
             agent {
                 docker {
                     label 'docker-host'
-                    image 'ubuntu-s2:5000/alpine/groovy:2.6-jre'
+                    image 'ubuntu-s2:5000/thirdparty/groovy:2.6-jre'
                     args "-v '${WORKSPACE}/bin:/home/groovy/scripts'"
                 }
             }

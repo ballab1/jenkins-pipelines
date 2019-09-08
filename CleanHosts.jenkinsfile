@@ -4,6 +4,12 @@
 
 pipeline {
   agent { label 'master' }
+  options {
+    buildDiscarder(logRotator(numToKeepStr: '20'))
+    disableConcurrentBuilds()
+    disableResume()
+    timestamps()
+  }
 
   stages {
     stage ('clean hosts') {

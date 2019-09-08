@@ -6,8 +6,12 @@ pipeline {
   agent { label 'master' }
   options {
     buildDiscarder(logRotator(numToKeepStr: '20'))
+    disableConcurrentBuilds()
     disableResume()
     timestamps()
+  }
+  parameters {
+    string(name: 'CONTAINER_TAG', defaultValue: 'latest', description: 'version of kafka containers to use')
   }
 
   stages {
@@ -15,7 +19,7 @@ pipeline {
       agent { label 'ubuntu-s1' }
       steps {
         ansiColor('xterm') {
-          updateWorkspace('/home/bobb/kafka-deploy', ['./deploy', '-l'])
+          updateWorkspace('/home/bobb/kafka-deploy', ['CONTAINER_TAG='+params.CONTAINER_TAG, './deploy', '-l'])
         }
       }
     }
@@ -23,7 +27,7 @@ pipeline {
       agent { label 'ubuntu-s3' }
       steps {
         ansiColor('xterm') {
-          updateWorkspace('/home/bobb/kafka-deploy', ['./deploy', '-l'])
+          updateWorkspace('/home/bobb/kafka-deploy', ['CONTAINER_TAG='+params.CONTAINER_TAG, './deploy', '-l'])
         }
       }
     } 
@@ -31,7 +35,7 @@ pipeline {
       agent { label 'ubuntu-s4' }
       steps {
         ansiColor('xterm') {
-          updateWorkspace('/home/bobb/kafka-deploy', ['./deploy', '-l'])
+          updateWorkspace('/home/bobb/kafka-deploy', ['CONTAINER_TAG='+params.CONTAINER_TAG, './deploy', '-l'])
         }
       }
     } 

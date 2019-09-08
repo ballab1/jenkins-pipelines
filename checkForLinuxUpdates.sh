@@ -31,11 +31,18 @@ function latestUpdates()
     local msg
     msg=$(sudo /usr/bin/apt-get update -y 2>&1) && status=$? || status=$?
     echo $msg >> "$results"
+    if [ $status -ne 0 ]; then
+        echo $msg
+        updateStatus "addBadge('error.gif','${nodeName}: ${msg}')"
+        return $status
+    fi
     msg=$(sudo /usr/bin/apt-get dist-upgrade -y 2>&1) && status=$? || status=$?
     echo $msg >> "$results"
-#    if [[ $msg = *'sudo dpkg --configure -a'* ]]; then
-#        :
-#    fi
+    if [ $status -ne 0 ]; then
+        echo $msg
+        updateStatus "addBadge('error.gif','${nodeName}: ${msg}')"
+        return $status
+    fi
 }
 
 function main()
@@ -43,15 +50,18 @@ function main()
     :> "$results"
     :> "$status"
 
+    local -i status=0
     echo "    checking for linux updates on: $(hostname -s)"
     echo "    current directory: $(pwd)"
     env | sort
-    removeLocks
-    showWhatNeedsDone
-    latestUpdates
-    report
-    showLinuxVersions
-    removeOldLinux
+
+    removeLocks        || status=$?
+    showWhatNeedsDone  || status=$?
+    latestUpdates      || status=$?
+    report             || status=$?
+    showLinuxVersions  || status=$?
+    removeOldLinux     || status=$?
+    return $status
 }
 
 function removeLocks()
@@ -111,7 +121,6 @@ function showLinuxVersions()
 function showWhatNeedsDone()
 {
     local text
-set -x
     echo
     echo 'show what needs done'
     text=$(/usr/lib/update-notifier/apt-check --human-readable) || :
@@ -123,7 +132,6 @@ set -x
     echo "$text"
     local txt=$(grep 'New release' <<< "$text" ||:)
     [ -z "$txt" ] || updateStatus "addBadge('yellow.gif','${nodeName}: ${txt}')"
-set +x
 }
 
 function updateStatus()
