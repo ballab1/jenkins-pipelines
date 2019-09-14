@@ -3,12 +3,12 @@
 
 processInParallel (
     agent: 'ubuntu-s3',
-    items: [ 'recipes.tgz' ],
+    items: [ 'photoCache.tgz' ],
     process: { tarfile, body -> 
         fixedNodeStep(tarfile, body)
     },
     action: { tarfile ->
-        sh "tar czf '${WORKSPACE}/${tarfile}' -C /home/bobb/production/workspace.production/zen recipes ||:"
+        sh "tar czf '${WORKSPACE}/${tarfile}' -C /home/bobb/production/workspace.production/zen cache ||:"
         sh "sudo cp '${WORKSPACE}/${tarfile}' /home/bobb/xsrc/"
         archiveArtifacts tarfile
     }
