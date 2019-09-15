@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  labels:
+    some-label: POD_LABEL
+spec:
+  containers:
+  - name: jnlp
+    image: ubuntu-s2:5000/thirdparty/jenkinsci/slave:3.16.1-alpine
+    command:
+    - cat
+    tty: true

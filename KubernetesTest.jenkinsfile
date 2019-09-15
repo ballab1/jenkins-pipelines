@@ -1,0 +1,30 @@
+@Library('jenkins-sharedlibs')_
+
+/////////////////////////////////////////////////////////////////////////////////////////////////
+
+pipeline {
+    agent {
+        kubernetes {
+            defaultContainer 'jnlp'
+            yamlFile 'KubernetesTestPod.yaml'
+        }
+    }
+    options {
+        buildDiscarder(logRotator(numToKeepStr: '20'))
+        disableConcurrentBuilds()
+        disableResume()
+        timestamps()
+    }
+    stages {
+        stage('hello') {
+            steps {
+                echo 'Hello world'
+            }
+        }
+    }
+    post {
+        always {
+            kafkaBuildReporter()
+        }
+    }
+}
