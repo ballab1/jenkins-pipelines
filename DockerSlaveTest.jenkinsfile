@@ -4,8 +4,9 @@
 pipeline {
     agent {
         docker {
-            label 'docker-host'
 	    image 'ubuntu-s2:5000/thirdparty/jenkinsci/slave:3.16.1-alpine'
+            label 'docker-host'
+            registryUrl 'http://ubuntu-s2:5000/'
         }
     }
     options {
