@@ -15,12 +15,7 @@ pipeline {
     stage ('clean hosts') {
       steps {
         ansiColor('xterm') {
-            sh "ssh bobb@ubuntu-s1 'rm -rf /home/jenkins.s3/workspace/*'"
-            sh "ssh bobb@ubuntu-s2 'rm -rf /home/jenkins.s3/workspace/*'"
-            sh "ssh bobb@ubuntu-s3 'rm -rf /home/jenkins.s3/workspace/*'"
-            sh "ssh bobb@ubuntu-s4 'rm -rf /home/jenkins.s3/workspace/*'"
-            sh "ssh bobb@ubuntu-s5 'rm -rf /home/jenkins.s3/workspace/*'"
-            sh "ssh bobb@ubuntu-s6 'rm -rf /home/jenkins.s3/workspace/*'"
+           cleanHosts('bobb', '/home/jenkins.s3')
         }
       }
     }

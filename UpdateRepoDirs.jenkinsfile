@@ -2,97 +2,86 @@
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
-pipeline {
-    agent { label 'master' }
-    options {
-        buildDiscarder(logRotator(numToKeepStr: '20'))
-        lock resource: 'update_repo_dirs_lock'
-        disableConcurrentBuilds()
-        disableResume()
-        timestamps()
+def hosts = [:]
+def names = []
+
+
+def prepareNodeStage(String host) {
+  return {
+    node (host) {
+      checkout scm
+      unstash 'dirspecs'
+      sh 'hostname; ./updateWorkspace.sh'
+      stash name: host, allowEmpty: true, includes: '*.inf'
     }
-    triggers {
-        GenericTrigger(
+  }
+}
+
+
+timestamps {
+
+  stage ('Initialization') {
+    node('master') {
+      properties([
+        buildDiscarder(logRotator(numToKeepStr: '20')),
+        disableConcurrentBuilds(),
+        disableResume(),
+        pipelineTriggers([
+          [$class: 'GenericTrigger',
             genericVariables: [
-                [ key: 'reponame', 
-                  defaultValue: params.reponame, 
-                  value: '$.repository.name', 
-                  regexpFilter: '-(deploy-s1|deploy-s3|deploy-s4|deploy|stuff)$' ]
+              [
+                key: 'reponame', 
+                defaultValue: params.reponame, 
+                value: '$.repository.name', 
+                regexpFilter: '-(deploy-s1|deploy-s3|deploy-s4|deploy|stuff)$'
+              ]
             ],
             causeString: 'Triggered by a change to $reponame',
 //            printContributedVariables: true,
             silentResponse: false,
             regexpFilterText: '$reponame',
             regexpFilterExpression: '^' + reponame + '$'
-        )
-    }
+          ]
+        ])
+      ])
 
-    stages {
-        stage ('master') {
-            agent { label 'master' }
-            steps {
-                updateRepoDirs reponame
-                stash name: 'dirspecs', allowEmpty: true, includes: '*.dirs'
-            }
-        }
-        stage ('ubuntu-s1') {
-            agent { label 'ubuntu-s1' }
-            steps {
-                unstash 'dirspecs'
-                sh returnStatus: true, script: './updateWorkspace.sh'
-                stash name: 'ubuntu-s1', allowEmpty: true, includes: '*.inf'
-            }
-        }
-        stage ('ubuntu-s2') {
-            agent { label 'ubuntu-s2' }
-            steps {
-                unstash 'dirspecs'
-                sh returnStatus: true, script: './updateWorkspace.sh'
-                stash name: 'ubuntu-s2', allowEmpty: true, includes: '*.inf'
-            }
-        }
-        stage ('ubuntu-s3') {
-            agent { label 'ubuntu-s3' }
-            steps {
-                unstash 'dirspecs'
-                sh returnStatus: true, script: './updateWorkspace.sh'
-                stash name: 'ubuntu-s3', allowEmpty: true, includes: '*.inf'
-            }
-        }
-        stage ('ubuntu-s4') {
-            agent { label 'ubuntu-s4' }
-            steps {
-                unstash 'dirspecs'
-                sh returnStatus: true, script: './updateWorkspace.sh'
-                stash name: 'ubuntu-s4', allowEmpty: true, includes: '*.inf'
-            }
-        }
-        stage ('ubuntu-s5') {
-            agent { label 'ubuntu-s5' }
-            steps {
-                unstash 'dirspecs'
-                sh returnStatus: true, script: './updateWorkspace.sh'
-                stash name: 'ubuntu-s5', allowEmpty: true, includes: '*.inf'
-            }
-        }
-        stage ('ubuntu-s6') {
-            agent { label 'ubuntu-s6' }
-            steps {
-                unstash 'dirspecs'
-                sh returnStatus: true, script: './updateWorkspace.sh'
-                stash name: 'ubuntu-s6', allowEmpty: true, includes: '*.inf'
-            }
-        }
-        stage ('report') {
-            agent any
-            steps {
-                repoDirResults( activeNodes() )                 
-            }
-        }
+      updateRepoDirs reponame
+      stash name: 'dirspecs', allowEmpty: true, includes: '*.dirs'
+      names = activeNodes()
+      for (host in names) {
+        hosts["${host}"] = prepareNodeStage(host)
+      }
     }
-    post {
-        always {
-            kafkaBuildReporter()
-        }
+  }
+
+  stage ('Process nodes') {
+    parallel hosts
+  }
+
+  stage ('Generate Report') {
+    node {
+      sh '''
+         rm *.inf *.dirs ||:
+         :> results.txt
+      '''
+      for (host in names) {
+        try {
+          unstash host
+          sh '[ ! -e "' + host + '.inf" ] || (cat "' + host + '.inf" >> results.txt)'
+//          sh "[ ! -e '${host}.inf' ] || (cat '${host}.inf' >> results.txt)"
+         }
+         catch (error) { 
+           echo 'No information found for ' + host
+         }
+      }
+      archiveArtifacts allowEmptyArchive: true, artifacts: 'results.txt,*.inf'
     }
-} 
+  }
+
+  stage ('submit-metrics') {
+    node {
+      kafkaBuildReporter()
+    }
+  }
+
+}

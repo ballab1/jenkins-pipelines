@@ -14,6 +14,6 @@ processInParallel (
         script {
             load './status.groovy'
         }
-        archiveArtifacts allowEmptyArchive: true, artifacts: "${nodeName}.txt"
+        archiveArtifacts allowEmptyArchive: true, artifacts: "*.txt"
     }
 )

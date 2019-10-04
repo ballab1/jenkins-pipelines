@@ -74,12 +74,12 @@ pipeline {
                         sh "./build.sh ${vars}"
                     }
                 }
-                archiveArtifacts allowEmptyArchive: true, artifacts: 'logs/*'
             }
         }
     }
     post {
         always {
+            archiveArtifacts allowEmptyArchive: true, artifacts: 'logs/*'
             kafkaBuildReporter()       
         }
     }

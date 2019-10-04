@@ -2,25 +2,16 @@
 
 set -o errtrace
 
-export TERM=linux
-declare results="${PWD}/results.txt"
-declare status=./status.groovy
-
-declare nodeName=${1:-$(hostname -s)}
-shift
-
 function onexit()
 {
     echo
     echo
-    [ -e "$results" ] || return 0
-    echo 'show what was done'
-    cat "$results"
-    mv "$results" "$nodeName.txt"
+    if [ -s "$RESULTS" ]; then
+      echo 'show what was done'
+      cat "$RESULTS"
+    fi
+    return 0
 }
-trap onexit ERR
-trap onexit INT
-trap onexit PIPE
 
 function latestUpdates()
 {
@@ -29,38 +20,37 @@ function latestUpdates()
     echo 'get latest updates'
     local -i status
     local msg
-    msg=$(sudo /usr/bin/apt-get update -y 2>&1) && status=$? || status=$?
-    echo $msg >> "$results"
+    msg="$(sudo /usr/bin/apt-get update -y 2>&1)" && status=$? || status=$?
+    echo "$msg" >> "$RESULTS"
     if [ $status -ne 0 ]; then
-        echo $msg
-        updateStatus "addBadge('error.gif','${nodeName}: ${msg}')"
+        echo "$msg"
+        updateStatus "addBadge('error.gif','${NODENAME}: ${msg}')"
         return $status
     fi
-    msg=$(sudo /usr/bin/apt-get dist-upgrade -y 2>&1) && status=$? || status=$?
-    echo $msg >> "$results"
+    msg="$(sudo /usr/bin/apt-get dist-upgrade -y 2>&1)" && status=$? || status=$?
+    echo "$msg" >> "$RESULTS"
     if [ $status -ne 0 ]; then
-        echo $msg
-        updateStatus "addBadge('error.gif','${nodeName}: ${msg}')"
+        echo "$msg"
+        updateStatus "addBadge('error.gif','${NODENAME}: ${msg}')"
         return $status
     fi
 }
 
 function main()
 {
-    :> "$results"
-    :> "$status"
+    :> "$RESULTS"
+    :> "$JOB_STATUS"
 
     local -i status=0
     echo "    checking for linux updates on: $(hostname -s)"
     echo "    current directory: $(pwd)"
-    env | sort
 
-    removeLocks        || status=$?
-    showWhatNeedsDone  || status=$?
-    latestUpdates      || status=$?
-    report             || status=$?
-    showLinuxVersions  || status=$?
-    removeOldLinux     || status=$?
+    removeLocks            || status=$?
+    showWhatNeedsDone      || status=$?
+    latestUpdates          || status=$?
+    report                 || status=$?
+    showLinuxVersions      || status=$?
+    removeUneededPackages  || status=$?
     return $status
 }
 
@@ -78,20 +68,30 @@ function removeLocks()
         sudo rm /var/lib/apt/lists/lock
         sudo rm /var/cache/apt/archives/lock
         sudo rm /var/lib/dpkg/lock*
-        updateStatus "addErrorBadge('${nodeName}: removed locks')"
+        updateStatus "addErrorBadge('${NODENAME}: removed locks')"
     fi
 }
 
-function removeOldLinux()
+function removeUneededPackages()
 {
-    local installs=$(dpkg --get-selections | grep -e 'linux.*-4' | grep -v "$(uname -r | sed s/-generic//)" | awk '{ print  $1 }' | tr '\n' ' ')
-    if [ "$installs" ]; then
-        sudo /usr/bin/apt-get remove -y $installs
-        sudo /usr/bin/apt-get purge -y $installs
+    local -i status=0
+
+    # remove old linux versions
+    local -r packages=$(dpkg --get-selections | grep -e 'linux.*-4' | grep -v "$(uname -r | sed s/-generic//)" | awk '{ print  $1 }' | tr '\n' ' ')
+
+    if [ "$packages" ]; then
+        echo
+        echo 'removing OS versions no longer need'
+        sudo /usr/bin/apt-get remove -y $packages
+        sudo /usr/bin/apt-get purge -y $packages
+        status=1
+    fi
+
+    if [ "$status" -ne 0 ] || (grep 'sudo apt autoremove' "$RESULTS"); then
+        echo
+        echo 'removing packages that OS says we no longer need'
         sudo /usr/bin/apt-get autoremove -y
         sudo /usr/bin/apt autoremove -y
-
-        showLinuxVersions
     fi
 }
 
@@ -105,8 +105,9 @@ function report()
         echo "checking $fl"
         [ -s "$fl" ] || continue
         cat "$fl"
+        cat "$fl" >> "$RESULTS"
         fl="$(basename "$fl")"
-        updateStatus "addWarningBadge('${nodeName}: ${fl//-/ }')"
+        updateStatus "addWarningBadge('${NODENAME}: ${fl//-/ }')"
     done
 }
 
@@ -126,20 +127,32 @@ function showWhatNeedsDone()
     text=$(/usr/lib/update-notifier/apt-check --human-readable) || :
     echo "$text"
     text=$(grep 'packages can be updated.' <<< "$text" ||:)
-    [ -z "$text" ] || [ $(awk '{print $1}' <<< "$text") -eq 0 ] || updateStatus "addBadge('completed.gif','${nodeName}: ${text}')"
+    [ -z "$text" ] || [ $(awk '{print $1}' <<< "$text") -eq 0 ] || updateStatus "addBadge('completed.gif','${NODENAME}: ${text}')"
 
     text=$(/usr/lib/ubuntu-release-upgrader/check-new-release --check-dist-upgrade-only) || :
     echo "$text"
     local txt=$(grep 'New release' <<< "$text" ||:)
-    [ -z "$txt" ] || updateStatus "addBadge('yellow.gif','${nodeName}: ${txt}')"
+    [ -z "$txt" ] || updateStatus "addBadge('yellow.gif','${NODENAME}: ${txt}')"
 }
 
 function updateStatus()
 {
     local text=${1:?}
 
-    [ -s "$status" ] || echo "manager.$1" >> $status
+    [ -s "$JOB_STATUS" ] || echo "manager.$1" >> "$JOB_STATUS"
 }
 
+##########################################################################################################
+
+declare -r NODENAME=${1:-$(hostname -s)}
+shift
+
+export TERM=linux
+export RESULTS="./${NODENAME}.txt"
+export JOB_STATUS=./status.groovy
+
+trap onexit ERR
+trap onexit INT
+trap onexit PIPE
 
 main "$@"
