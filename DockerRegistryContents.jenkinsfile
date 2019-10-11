@@ -19,10 +19,7 @@ pipeline {
             steps {
                 checkout scm
                 ansiColor('xterm') {
-                    sh '''
-                        ssh ubuntu-s2 df /dev/sdb1 | tail -1 | awk '{print $5 " used, " $3/1024/1024 " GB  available"}' > storage.txt
-                        bin/docker-utilities report --format json --output registryContents.json'
-                        '''
+                    sh 'bin/docker-utilities report --format json --output registryContents.json'
                 }
                 stash includes: 'registryContents.json, storage.txt', name: 'json'
                 archiveArtifacts allowEmptyArchive: true, artifacts: 'registryContents.json'
@@ -31,7 +28,7 @@ pipeline {
         stage('Generate Report') {
             agent {
                 docker {
-                    image 'ubuntu-s2:5000/thirdparty/groovy:2.6-jre'
+                    image 'ubuntu-s2:5000/thirdparty/groovy:2.6-jre-alpine'
                     label 'docker-host'
                     args "-v '${WORKSPACE}/bin:/home/groovy/scripts'"
                     registryUrl 'http://ubuntu-s2:5000/'
