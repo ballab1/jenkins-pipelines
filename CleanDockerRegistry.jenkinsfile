@@ -1,14 +1,41 @@
-
 @Library('jenkins-sharedlibs')_
 
-processInParallel (
-    agent: 'ubuntu-s2',
-    items: [ 'CleanRegistry' ],
-    process: { tarfile, body -> 
-        fixedNodeStep(tarfile, body)
-    },
-    action: { it ->
-        sh "sudo ./clean-docker-registry.sh"
-        archiveArtifacts allowEmptyArchive: true, artifacts: 'summary.log' 
+/////////////////////////////////////////////////////////////////////////////////////////////////
+
+pipeline {
+  agent any
+  options {
+    buildDiscarder(logRotator(numToKeepStr: '20'))
+    disableConcurrentBuilds()
+    disableResume()
+    timestamps()
+  }
+
+  stages {
+    stage ('Curation') {
+      agent { label 'docker' }
+      steps {
+        ansiColor('xterm') {
+          checkout scm
+	  sh 'git submodule update --init --recursive'
+	  sh 'sudo ./docker-utilities delete --max 10  --confirm_delete'
+        }
+      }
     }
-)
+    stage ('Garbage Collection') {
+      agent { label 'ubuntu-s2' }
+      steps {
+        ansiColor('xterm') {
+          checkout scm
+	  sh 'sudo ./clean-docker-registry.sh'
+          archiveArtifacts allowEmptyArchive: true, artifacts: 'summary.log'
+        }
+      }
+    }
+  }
+  post {
+    always {
+        kafkaBuildReporter()       
+    }
+  }
+} 

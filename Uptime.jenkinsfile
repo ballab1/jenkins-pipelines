@@ -13,7 +13,7 @@ pipeline {
     stages {
         stage ('Process Items') {
             steps {
-                parallelSteps(activeNodes(),
+                parallelSteps(activeNodes('true'),
                               { nodeName, body -> 
                                   nodeStep(nodeName, body)
                               }, 
@@ -28,7 +28,7 @@ pipeline {
             steps {
                 script {
                    def json = [:]
-                   def nodes = activeNodes()
+                   def nodes = activeNodes('true')
                    for (int i=0; i<nodes.size(); ++i) {
                        def nodeName = nodes[i];
                        unstash name: nodeName

@@ -3,7 +3,7 @@
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
 pipeline {
-  agent { label 'master' }
+  agent { any }
   options {
     buildDiscarder(logRotator(numToKeepStr: '20'))
     disableConcurrentBuilds()
@@ -11,11 +11,11 @@ pipeline {
     timestamps()
   }
   parameters {
-    string(name: 'CONTAINER_TAG', defaultValue: '7.3.0', description: 'version of ELK stack to use')
+    string(name: 'CONTAINER_TAG', defaultValue: '7.4.0', description: 'version of ELK stack to use')
   }
 
   stages {
-    stage ('ubuntu-s5') {
+    stage ('deploy') {
       agent { label 'ubuntu-s6' }
       steps {
         ansiColor('xterm') {
