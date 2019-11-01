@@ -82,5 +82,8 @@ pipeline {
             archiveArtifacts allowEmptyArchive: true, artifacts: 'logs/*'
             kafkaBuildReporter()       
         }
+        cleanup {
+            deleteDir()
+        }
     }
 }

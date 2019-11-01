@@ -3,7 +3,7 @@
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
 pipeline {
-  agent { any }
+  agent any
   options {
     buildDiscarder(logRotator(numToKeepStr: '20'))
     disableConcurrentBuilds()
@@ -12,14 +12,16 @@ pipeline {
   }
   parameters {
     string(name: 'CONTAINER_TAG', defaultValue: '7.4.0', description: 'version of ELK stack to use')
+    string(name: 'SLAVE', defaultValue: 'ubuntu-s5', description: 'label of slave on which ELK stack should run')
+    string(name: 'TARGET_DIR', defaultValue: '/home/bobb/elk-deploy', description: 'target directory for config files')
   }
 
   stages {
     stage ('deploy') {
-      agent { label 'ubuntu-s6' }
+      agent { label params.SLAVE }
       steps {
         ansiColor('xterm') {
-	  updateWorkspace ('/home/bobb/elk-deploy', ['CONTAINER_TAG='+params.CONTAINER_TAG, './deploy', '-l'])
+	  updateWorkspace(params.TARGET_DIR, ['./deploy', '-l', '-c', params.CONTAINER_TAG])
         }
       }
     }
@@ -27,6 +29,9 @@ pipeline {
   post {
     always {
         kafkaBuildReporter()       
+    }
+    cleanup {
+        deleteDir()
     }
   }
 } 

@@ -34,6 +34,9 @@ function latestUpdates()
         updateStatus "addBadge('error.gif','${NODENAME}: ${msg}')"
         return $status
     fi
+    if grep -s '*** System restart required ***' <<< "$RESULTS"; then
+        updateStatus "addBadge('warning.gif','${NODENAME}: ${msg}')"
+    fi
 }
 
 function main()

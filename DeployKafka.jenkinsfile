@@ -12,14 +12,14 @@ pipeline {
   }
   parameters {
     string(name: 'CONTAINER_TAG', defaultValue: 'latest', description: 'version of kafka containers to use')
-  }
+    string(name: 'TARGET_DIR', defaultValue: '/home/bobb/kafka-deploy', description: 'target directory for config files')   }
 
   stages {
     stage ('ubuntu-s1') {
       agent { label 'ubuntu-s1' }
       steps {
         ansiColor('xterm') {
-          updateWorkspace('/home/bobb/kafka-deploy', ['CONTAINER_TAG='+params.CONTAINER_TAG, './deploy', '-l'])
+          updateWorkspace(params.TARGET_DIR, ['./deploy', '-l', '-c', params.CONTAINER_TAG])
         }
       }
     }
@@ -27,7 +27,7 @@ pipeline {
       agent { label 'ubuntu-s3' }
       steps {
         ansiColor('xterm') {
-          updateWorkspace('/home/bobb/kafka-deploy', ['CONTAINER_TAG='+params.CONTAINER_TAG, './deploy', '-l'])
+          updateWorkspace(params.TARGET_DIR, ['./deploy', '-l', '-c', params.CONTAINER_TAG])
         }
       }
     } 
@@ -35,7 +35,7 @@ pipeline {
       agent { label 'ubuntu-s4' }
       steps {
         ansiColor('xterm') {
-          updateWorkspace('/home/bobb/kafka-deploy', ['CONTAINER_TAG='+params.CONTAINER_TAG, './deploy', '-l'])
+          updateWorkspace(params.TARGET_DIR, ['./deploy', '-l', '-c', params.CONTAINER_TAG])
         }
       }
     } 
@@ -43,6 +43,9 @@ pipeline {
   post {
     always {
         kafkaBuildReporter()
+    }
+    cleanup {
+        deleteDir()
     }
   }
 } 

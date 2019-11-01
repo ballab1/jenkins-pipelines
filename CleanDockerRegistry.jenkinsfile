@@ -18,7 +18,7 @@ pipeline {
         ansiColor('xterm') {
           checkout scm
 	  sh 'git submodule update --init --recursive'
-	  sh 'sudo ./docker-utilities delete --max 10  --confirm_delete'
+	  sh './docker-utilities delete --max 10  --no_confirm_delete'
         }
       }
     }
@@ -36,6 +36,9 @@ pipeline {
   post {
     always {
         kafkaBuildReporter()       
+    }
+    cleanup {
+        deleteDir()
     }
   }
 } 

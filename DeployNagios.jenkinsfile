@@ -3,7 +3,7 @@
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
 pipeline {
-  agent { label 'master' }
+  agent any
   options {
     buildDiscarder(logRotator(numToKeepStr: '20'))
     disableConcurrentBuilds()
@@ -11,7 +11,9 @@ pipeline {
     timestamps()
   }
   parameters {
-    string(name: 'CONTAINER_TAG', defaultValue: 'latest', description: 'version of kafka containers to use')
+    string(name: 'CONTAINER_TAG', defaultValue: 'latest', description: 'version of nagios containers to use')
+    string(name: 'SLAVE', defaultValue: 'ubuntu-s4', description: 'label of slave on which nagios should run')
+    string(name: 'TARGET_DIR', defaultValue: '/home/bobb/nagios-deploy', description: 'target directory for config files')
   }
 
   stages {
@@ -19,7 +21,7 @@ pipeline {
       agent { label 'ubuntu-s4' }
       steps {
         ansiColor('xterm') {
-	  updateWorkspace('/home/bobb/nagios-deploy', ['CONTAINER_TAG='+params.CONTAINER_TAG, './deploy', '-l'])
+	  updateWorkspace(params.TARGET_DIR, ['./deploy', '-l', '-c', params.CONTAINER_TAG])
         }
       }
     }
@@ -27,6 +29,9 @@ pipeline {
   post {
     always {
         kafkaBuildReporter()
+    }
+    cleanup {
+        deleteDir()
     }
   }
 } 

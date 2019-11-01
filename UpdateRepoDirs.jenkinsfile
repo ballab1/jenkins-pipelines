@@ -63,6 +63,8 @@ timestamps {
       sh '''
          rm *.inf *.dirs ||:
          :> results.txt
+         date >> results.txt
+         echo >> results.txt
       '''
       for (host in names) {
         try {

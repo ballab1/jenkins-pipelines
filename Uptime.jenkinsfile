@@ -44,24 +44,28 @@ pipeline {
             }
         }
         stage('Generate Report') {
-          agent {
-               docker {
-                   image 'ubuntu-s2:5000/thirdparty/groovy:2.6-jre-alpine'
-                   label 'docker-host'
-                   registryUrl 'http://ubuntu-s2:5000/'
-               }
-          }
-          steps {
-               unstash 'json'
-               sh 'groovy uptimeReport.groovy'
-               archiveArtifacts allowEmptyArchive: true, artifacts: 'report.html'
-               postReport("${WORKSPACE}/report.html")
-          }
+            agent {
+                docker {
+                    image 'ubuntu-s2:5000/thirdparty/groovy:2.6-jre-alpine'
+                    label 'docker-host'
+                    registryUrl 'http://ubuntu-s2:5000/'
+                }
+            }
+            steps {
+                unstash 'json'
+                sh 'groovy uptimeReport.groovy'
+                archiveArtifacts allowEmptyArchive: true, artifacts: 'report.html'
+                stash includes: 'report.html', name: 'report'
+                postReport('report', 'report.html')
+            }
         }
     }
     post {
         always {
             kafkaBuildReporter()
+        }
+        cleanup {
+            deleteDir()
         }
     }
 }

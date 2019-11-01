@@ -1,3 +1,7 @@
+@Library('jenkins-sharedlibs')_
+
+/////////////////////////////////////////////////////////////////////////////////////////////////
+
 pipeline {
     agent { label 'docker-host' }
     options {
@@ -43,6 +47,14 @@ pipeline {
                 sh 'JSON="${WORKSPACE}/registryContents.json" groovy registryReport.groovy'
                 archiveArtifacts allowEmptyArchive: true, artifacts: 'bin/*.txt'
             }
+        }
+    }
+    post {
+        always {
+            kafkaBuildReporter()
+        }
+        cleanup {
+            deleteDir()
         }
     }
 }

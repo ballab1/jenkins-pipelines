@@ -1,0 +1,45 @@
+@Library('jenkins-sharedlibs')_
+
+/////////////////////////////////////////////////////////////////////////////////////////////////
+
+pipeline {
+    agent { label 'ubuntu-s1' }
+    options {
+        buildDiscarder(logRotator(numToKeepStr: '20'))
+        disableConcurrentBuilds()
+        disableResume()
+        timestamps()
+    }
+    parameters{
+                string(name: 'SLAVE', defaultValue: 'ubuntu-s1', description: '') 
+                text(name: 'DIRECTORIES', 
+                     defaultValue: '/mnt/WDMyCloud /mnt/Guest',
+                     description: 'directories location to scan')
+    }
+
+     
+    stages {
+        stage ('Scan Share') {
+            agent { label params.SLAVE }
+            steps {
+                checkout scm
+                sh './scanShareFiles.sh ' + params.DIRECTORIES
+            }
+        }
+        stage (Archive) {
+            agent { label params.SLAVE }
+            steps {
+                archiveArtifacts allowEmptyArchive: true, artifacts: '*.json'
+            }
+        }
+    }
+    post {
+        always {
+//            archiveArtifacts allowEmptyArchive: true, artifacts: '*.json'
+            kafkaBuildReporter()
+        }
+//        cleanup {
+//            deleteDir()
+//        }
+    }
+}
