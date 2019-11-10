@@ -7,16 +7,13 @@ declare -r  NICE_VAL='+4'
 #-----------------------------------------------------------------------------------------------
 function scanShareFiles.checkTime() {
 
-    local -r time=$(date '+%T')
-    local -i hour mins secs
-    hour="${time:0:2}"
-    mins="${time:3:2}"
-    secs="${time:6:2}"
+    local -ri secondsSinceMidnight=$(date -d "1970-01-01 UTC $(date +%T)" +%s)
 
-    if [ "$hour" -eq 3 ];then
-        [ "$mins" -ge 4 ]  && [ "$mins" -le 6 ] && sleep $(( (6-mins)*60 - secs ))
+    # sleep between 03:03:30 and 03:06:00
+    if [ "$secondsSinceMidnight" -gt 11010 ] && [ "$secondsSinceMidnight" -lt 11160 ]; then
+        sleep $(( 11160 - $secondsSinceMidnight ))
     fi
-    sleep 0
+    return 0
 }
 
 #-----------------------------------------------------------------------------------------------
@@ -114,6 +111,10 @@ function scanShareFiles.scan() {
     local -i status=0
 
     if [ "${file:-}" ]; then
+#        if [ "$(stat "$file")" = *'Stale file handle' ]; then
+#            sudo umount "$file"
+#            sudo mount -a
+#        fi
 
         if [ "$(stat --format='%F' "$file")" = 'directory' ] && [ "$(stat --format='%a' "$file")" != '770' ] ; then
 

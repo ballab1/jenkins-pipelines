@@ -21,7 +21,9 @@ pipeline {
       agent { label 'ubuntu-s4' }
       steps {
         ansiColor('xterm') {
-	  updateWorkspace(params.TARGET_DIR, ['./deploy', '-l', '-c', params.CONTAINER_TAG])
+          withEnv(['CFG_USER_SECRETS=/home/bobb/.inf']) {
+            updateWorkspace(params.TARGET_DIR, ['./deploy', '-l', '-c', params.CONTAINER_TAG])
+          }
         }
       }
     }

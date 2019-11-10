@@ -18,7 +18,7 @@ pipeline {
         ansiColor('xterm') {
           checkout scm
 	  sh 'git submodule update --init --recursive'
-	  sh './docker-utilities delete --max 10  --no_confirm_delete'
+	  sh './docker-utilities delete --max 6 --no_confirm_delete'
         }
       }
     }

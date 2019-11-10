@@ -6,7 +6,6 @@ metadata:
 spec:
   containers:
   - name: jnlp
-    image: ubuntu-s2:5000/thirdparty/jenkinsci/slave:3.16.1-alpine
-    command:
-    - cat
+    image: jenkins/jnlp-slave:3.35-5-alpine
+    args: ['\$(JENKINS_SECRET)', '\$(JENKINS_NAME)']
     tty: true

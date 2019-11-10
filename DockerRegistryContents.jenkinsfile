@@ -26,7 +26,7 @@ pipeline {
                     sh 'bin/docker-utilities report --format json --output registryContents.json'
                 }
                 stash includes: 'registryContents.json, storage.txt', name: 'json'
-                archiveArtifacts allowEmptyArchive: true, artifacts: 'registryContents.json'
+                archiveArtifacts allowEmptyArchive: true, artifacts: 'registryContents*.json'
             }
         }
         stage('Generate Report') {
@@ -34,18 +34,18 @@ pipeline {
                 docker {
                     image 'ubuntu-s2:5000/thirdparty/groovy:2.6-jre-alpine'
                     label 'docker-host'
-                    args "-v '${WORKSPACE}/bin:/home/groovy/scripts'"
+                    args "--volume '${WORKSPACE}:/home/groovy/scripts'"
                     registryUrl 'http://ubuntu-s2:5000/'
                 }
             }
             steps {
                 sh '''
                    [ ! -e registryContents.json ] || rm registryContents.json
-                   find bin -name '*.txt' -delete
+                   find . -name '*.txt' -delete
                    '''
                 unstash 'json'
                 sh 'JSON="${WORKSPACE}/registryContents.json" groovy registryReport.groovy'
-                archiveArtifacts allowEmptyArchive: true, artifacts: 'bin/*.txt'
+                archiveArtifacts allowEmptyArchive: true, artifacts: '**/*.txt'
             }
         }
     }
