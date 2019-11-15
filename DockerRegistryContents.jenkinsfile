@@ -23,7 +23,9 @@ pipeline {
             steps {
                 checkout scm
                 ansiColor('xterm') {
-                    sh 'bin/docker-utilities report --format json --output registryContents.json'
+                    sh '''
+                          ./docker-utilities report --format json --output registryContents.json
+                       '''
                 }
                 stash includes: 'registryContents.json, storage.txt', name: 'json'
                 archiveArtifacts allowEmptyArchive: true, artifacts: 'registryContents*.json'
@@ -40,8 +42,8 @@ pipeline {
             }
             steps {
                 sh '''
-                   [ ! -e registryContents.json ] || rm registryContents.json
-                   find . -name '*.txt' -delete
+                      [ ! -e registryContents.json ] || rm registryContents.json
+                      find . -name '*.txt' -delete
                    '''
                 unstash 'json'
                 sh 'JSON="${WORKSPACE}/registryContents.json" groovy registryReport.groovy'

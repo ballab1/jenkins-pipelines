@@ -22,6 +22,7 @@ pipeline {
       steps {
         ansiColor('xterm') {
           withEnv(['CFG_USER_SECRETS=/home/bobb/.inf']) {
+            sh './updateBin.sh'
             updateWorkspace(params.TARGET_DIR, ['./deploy', '-l', '-c', params.CONTAINER_TAG])
           }
         }

@@ -11,7 +11,11 @@ def prepareNodeStage(String host) {
     node (host) {
       checkout scm
       unstash 'dirspecs'
-      sh 'hostname; ./updateWorkspace.sh'
+      sh '''
+            hostname
+            ./updateBin.sh
+            ./updateWorkspace.sh
+         '''
       stash name: host, allowEmpty: true, includes: '*.inf'
     }
   }

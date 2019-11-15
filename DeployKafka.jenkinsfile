@@ -19,6 +19,7 @@ pipeline {
       agent { label 'ubuntu-s1' }
       steps {
         ansiColor('xterm') {
+          sh './updateBin.sh'
           updateWorkspace(params.TARGET_DIR, ['./deploy', '-l', '-c', params.CONTAINER_TAG])
         }
       }
@@ -27,6 +28,7 @@ pipeline {
       agent { label 'ubuntu-s3' }
       steps {
         ansiColor('xterm') {
+          sh './updateBin.sh'
           updateWorkspace(params.TARGET_DIR, ['./deploy', '-l', '-c', params.CONTAINER_TAG])
         }
       }
@@ -35,6 +37,7 @@ pipeline {
       agent { label 'ubuntu-s4' }
       steps {
         ansiColor('xterm') {
+          sh './updateBin.sh'
           updateWorkspace(params.TARGET_DIR, ['./deploy', '-l', '-c', params.CONTAINER_TAG])
         }
       }

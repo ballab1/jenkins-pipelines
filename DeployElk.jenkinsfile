@@ -21,6 +21,7 @@ pipeline {
       agent { label params.SLAVE }
       steps {
         ansiColor('xterm') {
+          sh './updateBin.sh'
 	  updateWorkspace(params.TARGET_DIR, ['./deploy', '-l', '-c', params.CONTAINER_TAG])
         }
       }

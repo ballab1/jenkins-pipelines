@@ -1,11 +1,12 @@
 apiVersion: v1
 kind: Pod
 metadata:
+  name: jenkins-slave
   labels:
-    some-label: POD_LABEL
+    jenkins-label: POD_LABEL
 spec:
   containers:
   - name: jnlp
     image: jenkins/jnlp-slave:3.35-5-alpine
-    args: ['\$(JENKINS_SECRET)', '\$(JENKINS_NAME)']
+    args: [ '-url', '\${JENKINS_URL}', '\$(JENKINS_SECRET)', '\$(JENKINS_NAME)' ]
     tty: true

@@ -3,11 +3,14 @@
 
 processInParallel (
     agent: 'master',
-    items: [ 'ubuntu-s1', 'ubuntu-s3', 'ubuntu-s4', 'ubuntu-s5' ],
+    items: [ 'ubuntu-s1', 'ubuntu-s3', 'ubuntu-s4', 'ubuntu-s5', 'ubuntu-s6' ],
     process: { nodeName, body -> 
         nodeStep(nodeName, body)
     },
     action: { nodeName ->
-        sh 'bin/docker-utilities clean'
+        sh '''
+              ./updateBin.sh
+              ./docker-utilities clean
+           '''
     }
 )

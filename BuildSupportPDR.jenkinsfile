@@ -38,8 +38,7 @@ pipeline {
         stage('Prepare Workspace') {
             steps {
                 echo "checking out ${params.BRANCH}"
-                deleteDir()
-              
+
                 // make sure 'cwd' is empty so we can run 'git clone' into workspace
                 checkout([$class: 'GitSCM',
                           branches: [[name: "*/${params.BRANCH}"]], 
@@ -49,7 +48,7 @@ pipeline {
                                                    [$class: 'SubmoduleOption', 
                                                     disableSubmodules: false, 
                                                     parentCredentials: true, 
-                                                    recursiveSubmodules: true, 
+                                                    recursiveSubmodules: false, 
                                                     reference: '', 
                                                     trackingSubmodules: true]
                                                    ],
@@ -58,7 +57,12 @@ pipeline {
                                                            url: 'https://github.com/ballab1/support']
                                                          ]
                         ])
-                sh "git submodule foreach git checkout ${params.BRANCH}"
+                sh """
+                      git submodule foreach 'dir="\$(basename "\$(pwd)")"; cd ..; git submodule update --init --recursive "\$dir" ||:'
+                      git submodule foreach '[ \$(basename "\$(git config --get remote.origin.url)") = utilities ] || git checkout ${params.BRANCH}'
+                      # git config submodule.utilities.update '!git fetch --all; git checkout --detach origin/${params.BRANCH}'
+                      git submodule update --remote --recursive bin ||:
+                   """
             }
         }    
         stage('Build') {

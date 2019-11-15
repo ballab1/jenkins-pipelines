@@ -23,6 +23,7 @@ pipeline {
             agent { label params.SLAVE }
             steps {
                 checkout scm
+                sh './updateBin.sh'
                 sh './scanShareFiles.sh ' + params.DIRECTORIES
             }
         }
