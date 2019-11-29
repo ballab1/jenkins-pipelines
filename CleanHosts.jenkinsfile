@@ -1,31 +1,13 @@
+
 @Library('jenkins-sharedlibs')_
 
-/////////////////////////////////////////////////////////////////////////////////////////////////
-
-pipeline {
-  agent { label 'master' }
-  options {
-    buildDiscarder(logRotator(numToKeepStr: '20'))
-    disableConcurrentBuilds()
-    disableResume()
-    timestamps()
-  }
-
-  stages {
-    stage ('clean hosts') {
-      steps {
-        ansiColor('xterm') {
-           cleanHosts('bobb', '/home/jenkins.s3')
-        }
-      }
+processInParallel (
+    agent: 'master',
+    items: activeNodes(),
+    process: { nodeName, body -> 
+        fixedNodeStep(nodeName, body)
+    },
+    action: { nodeName ->
+        sh 'ssh bobb@' + nodeName + ' rm -rf /home/jenkins.s3/workspace/*' 
     }
-  }
-  post {
-    always {
-        kafkaBuildReporter()       
-    }
-    cleanup {
-        deleteDir()
-    }
-  }
-} 
+)

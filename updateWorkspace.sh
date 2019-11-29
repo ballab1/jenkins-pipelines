@@ -64,10 +64,13 @@ function updateGitDir()
         run git fetch --all --recurse-submodules
         local branch
         for branch in $(echo "$branches" | awk '{print substr($0,3)}'); do
-            run git checkout "$branch"
-            run git reset --hard "origin/$branch"
+            if [[ "$branch" = \(HEAD* ]]; then
+                run git reset --hard "origin/master"
+            else
+                run git checkout "$branch"
+                run git reset --hard "origin/$branch"
+            fi
         done
-        [ "$ref" != 'HEAD' ] && run git checkout "$ref"
     fi
     return 0
 }

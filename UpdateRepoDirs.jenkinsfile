@@ -49,6 +49,7 @@ timestamps {
         ])
       ])
 
+      checkout scm
       updateRepoDirs reponame
       stash name: 'dirspecs', allowEmpty: true, includes: '*.dirs'
       names = activeNodes()

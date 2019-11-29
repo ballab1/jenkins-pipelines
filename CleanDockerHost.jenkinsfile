@@ -3,14 +3,18 @@
 
 processInParallel (
     agent: 'master',
-    items: [ 'ubuntu-s1', 'ubuntu-s3', 'ubuntu-s4', 'ubuntu-s5', 'ubuntu-s6' ],
+    items: activeNodes(),
     process: { nodeName, body -> 
         nodeStep(nodeName, body)
     },
     action: { nodeName ->
-        sh '''
-              ./updateBin.sh
-              ./docker-utilities clean
-           '''
+        ansiColor('xterm') {
+            sh '''
+                  if [ $(hostname) != 'ubuntu-s2' ]; then
+                      ./updateBin.sh
+                      ./docker-utilities clean
+                  fi
+                '''
+        }
     }
 )

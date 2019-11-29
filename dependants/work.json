@@ -16,5 +16,11 @@
   ],
   "ubuntu-s6": [
     "/home/bobb/.work"
+  ],
+  "ubuntu-s7": [
+    "/home/bobb/.work"
+  ],
+  "ubuntu-s8": [
+    "/home/bobb/.work"
   ]
 }

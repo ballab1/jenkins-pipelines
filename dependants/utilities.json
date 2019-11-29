@@ -1,18 +1,18 @@
 {
   "ubuntu-s1": [
-    "/home/bobb/bin/utilities",
+    "/home/bobb/.bin/utilities",
     "/home/bobb/kafka-deploy/bin"
   ],
   "ubuntu-s2": [
-    "/home/bobb/bin/utilities"
+    "/home/bobb/.bin/utilities"
   ],
   "ubuntu-s3": [
-    "/home/bobb/bin/utilities",
+    "/home/bobb/.bin/utilities",
     "/home/bobb/kafka-deploy/bin",
     "/home/bobb/production/bin"
   ],
   "ubuntu-s4": [
-    "/home/bobb/bin/utilities",
+    "/home/bobb/.bin/utilities",
     "/home/bobb/GIT/elk-deploy/bin",
     "/home/bobb/GIT/kafka-deploy-s1/bin",
     "/home/bobb/GIT/kafka-deploy-s3/bin",
@@ -28,10 +28,15 @@
     "/home/bobb/kafka-deploy/bin"
   ],
   "ubuntu-s5": [
-    "/home/bobb/bin/utilities"
+    "/home/bobb/.bin/utilities"
   ],
   "ubuntu-s6": [
-    "/home/bobb/bin/utilities",
-    "/home/bobb/elk-deploy/bin"
+    "/home/bobb/.bin/utilities"
+  ],
+  "ubuntu-s7": [
+    "/home/bobb/.bin/utilities"
+  ],
+  "ubuntu-s8": [
+    "/home/bobb/.bin/utilities"
   ]
 }

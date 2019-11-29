@@ -2,6 +2,19 @@
 
 # scan registry and delete folders with no sub-folders in
 
+# setting up docker-registry:
+#   apt-get -y docker-registry
+
+# then setup where images get stored.
+# either change docker.registry.config.yml:
+#    sed -iE -e 's|\srootdirectory:\s.+$| rootdirectory: /var/lib/docker-registry|' /etc/docker/registry/config.yml
+#or change mount point by adding:
+#root@ubuntu-s2:~# mkdir /media/ext3-d/docker-registry
+#root@ubuntu-s2:~# chown docker-registry:docker-registry /media/ext3-d/docker-registry
+#fstab:
+#    /media/ext3-d/docker-registry /var/lib/docker-registry   none    bind
+
+
 function removeEmptyTags()
 {
     local dir=${1:?}
