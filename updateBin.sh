@@ -1,9 +1,14 @@
 #!/bin/bash
 
 if [ -d bin ]; then
-    git submodule update --init --recursive -- bin
+    git submodule update --init -- bin
     cd bin
-    git fetch --all --recurse-submodules
-    git checkout origin/dev --detach
-    cd ..
+    git fetch --all
+    git checkout --detach origin/master
+    git submodule update --init -- bashlib
+    cd bashlib
+    git fetch --all
+    git checkout --detach origin/master
+    cd ../..
 fi
+exit 0

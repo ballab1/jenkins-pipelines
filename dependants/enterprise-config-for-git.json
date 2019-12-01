@@ -16,5 +16,11 @@
   ],
   "ubuntu-s6": [
     "/home/bobb/.enterprise"
+  ],
+  "ubuntu-s7": [
+    "/home/bobb/.enterprise"
+  ],
+  "ubuntu-s8": [
+    "/home/bobb/.enterprise"
   ]
 }

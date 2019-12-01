@@ -1,0 +1,26 @@
+{
+  "ubuntu-s1": [
+    "/home/bobb/.ssh"
+  ],
+  "ubuntu-s2": [
+    "/home/bobb/.ssh"
+  ],
+  "ubuntu-s3": [
+    "/home/bobb/.ssh"
+  ],
+  "ubuntu-s4": [
+    "/home/bobb/.ssh"
+  ],
+  "ubuntu-s5": [
+    "/home/bobb/.ssh"
+  ],
+  "ubuntu-s6": [
+    "/home/bobb/.ssh"
+  ],
+  "ubuntu-s7": [
+    "/home/bobb/.ssh"
+  ],
+  "ubuntu-s8": [
+    "/home/bobb/.ssh"
+  ]
+}
