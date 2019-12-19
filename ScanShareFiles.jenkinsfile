@@ -3,7 +3,7 @@
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
 pipeline {
-    agent { label 'ubuntu-s1' }
+    agent { label 'ubuntu-s7' }
     options {
         buildDiscarder(logRotator(numToKeepStr: '20'))
         disableConcurrentBuilds()

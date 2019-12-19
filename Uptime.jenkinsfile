@@ -21,6 +21,10 @@ pipeline {
                                   sh "./realUptime > ${nodeName}.txt"
                                   archiveArtifacts "${nodeName}.txt"
                                   stash includes: "${nodeName}.txt", name: nodeName
+                                  script {
+                                      def uptime = readFile("${nodeName}.txt")
+                                      kafkaProducer('uptime',[ toJSON([ "${nodeName}" : parseUptime(uptime) ]) ])
+                                  }
                               })
             }
         }
@@ -35,7 +39,6 @@ pipeline {
                        def uptime = readFile("${nodeName}.txt")
                        echo "${nodeName} uptime: ${uptime}"
                        json[nodeName] = parseUptime ( uptime )
-                       kafkaProducer('uptime',[ toJSON([ "${nodeName}" : json[nodeName] ]) ])
                    }
                    writeFile file: 'uptime.json', text: toJSON(json)
                 }

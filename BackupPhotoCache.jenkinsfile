@@ -3,13 +3,13 @@
 
 processInParallel (
     agent: 'ubuntu-s3',
-    items: [ 'photoCache.tgz' ],
-    process: { tarfile, body -> 
-        fixedNodeStep(tarfile, body)
+    items: [ 'photoprism', 'zen' ],
+    process: { tardir, body -> 
+        fixedNodeStep(tardir, body)
     },
-    action: { tarfile ->
-        sh "tar czf '${WORKSPACE}/${tarfile}' -C /home/bobb/production/workspace.production/zen cache ||:"
-        sh "sudo cp '${WORKSPACE}/${tarfile}' /home/bobb/xsrc/"
-        archiveArtifacts tarfile
+    action: { dir ->
+        sh "tar czf '${WORKSPACE}/${dir}_cache.tgz' --directory /home/bobb/production/workspace.production/${dir}/cache ."
+        sh "sudo cp '${WORKSPACE}/${dir}_cache.tgz' /home/bobb/xsrc/"
+        archiveArtifacts dir+'_cache.tgz'
     }
 )

@@ -1,0 +1,37 @@
+
+@Library('jenkins-sharedlibs')_
+
+pipeline {
+    agent {
+        docker {
+	    image 'ubuntu-s2:5000/alpine/movefiles:dev'
+            label 'docker-host'
+            args '--volume /mnt:/mnt --entrypoint=""'
+            registryUrl 'http://ubuntu-s2:5000/'
+        }
+    }
+    options {
+        buildDiscarder(logRotator(numToKeepStr: '20'))
+        disableConcurrentBuilds()
+        disableResume()
+        timestamps()
+    }
+    stages {
+        stage('move files') {
+            steps {
+                sh '''
+                    perl /usr/src/myapp/moveFiles.pl -p /mnt/WDMyCloud/Robert
+                    perl /usr/src/myapp/moveFiles.pl -p /mnt/WDMyCloud/Joan
+                  '''
+            }
+        }
+    }
+    post {
+        always {
+            kafkaBuildReporter()
+        }
+        cleanup {
+            deleteDir()
+        }
+    }
+}

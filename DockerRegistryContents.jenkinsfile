@@ -16,18 +16,18 @@ pipeline {
                 docker {
                     image 'ubuntu-s2:5000/alpine/build_container:latest'
                     label 'docker-host'
-                    args '--add-host="ubuntu-s2:10.1.3.12" --entrypoint=""'
+                    args "--add-host='ubuntu-s2:10.1.3.12' --volume '${WORKSPACE}:/opt' --entrypoint=''"
                     registryUrl 'http://ubuntu-s2:5000/'
                 }
             }
             steps {
-                checkout scm
                 ansiColor('xterm') {
                     sh '''
-                          ./docker-utilities report --format json --output registryContents.json
+                          docker-utilities report --format json --output /opt/registryContents.json
+                          cp --remove-destination "$(dirname "$(command -v docker-utilities)")/registryReport.groovy" /opt
                        '''
                 }
-                stash includes: 'registryContents.json, storage.txt', name: 'json'
+                stash includes: 'registryContents.json, storage.txt, registryReport.groovy', name: 'json'
                 archiveArtifacts allowEmptyArchive: true, artifacts: 'registryContents*.json'
             }
         }
