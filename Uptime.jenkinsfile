@@ -49,9 +49,9 @@ pipeline {
         stage('Generate Report') {
             agent {
                 docker {
-                    image 'ubuntu-s2:5000/thirdparty/groovy:2.6-jre-alpine'
+                    image 'ubuntu-s2.home:5000/thirdparty/groovy:2.6-jre-alpine'
                     label 'docker-host'
-                    registryUrl 'http://ubuntu-s2:5000/'
+                    registryUrl 'http://ubuntu-s2.home:5000/'
                 }
             }
             steps {

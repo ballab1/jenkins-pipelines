@@ -8,6 +8,6 @@ processInParallel (
         fixedNodeStep(nodeName, body)
     },
     action: { nodeName ->
-        sh 'ssh bobb@' + nodeName + ' rm -rf /home/jenkins.s3/workspace/*' 
+        sh 'ssh bobb@' + nodeName + '.home rm -rf /home/jenkins.s3/workspace/*' 
     }
 )

@@ -73,8 +73,8 @@ pipeline {
                 ansiColor('xterm') {
                     script {
                         def vars = ''
-                        if ( params.Always_Build == 'true' ) { vars += ' --force' }
-                        if ( params.Always_Push == 'true' ) { vars += ' --push' }
+                        if ( "${params.Always_Build}" == 'true' ) { vars += ' --force' }
+                        if ( "${params.Always_Push}" == 'true' ) { vars += ' --push' }
                         sh "./build.sh ${vars}"
                     }
                 }
@@ -83,7 +83,7 @@ pipeline {
     }
     post {
         always {
-            archiveArtifacts allowEmptyArchive: true, artifacts: 'logs/*'
+            archiveArtifacts allowEmptyArchive: true, artifacts: 'logs/*,**/*.dependencies.log'
             kafkaBuildReporter()       
         }
         cleanup {

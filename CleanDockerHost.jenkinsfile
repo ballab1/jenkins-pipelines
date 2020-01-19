@@ -9,8 +9,8 @@ processInParallel (
     },
     action: { nodeName ->
         ansiColor('xterm') {
-            sh '''
-                  if [ $(hostname) != 'ubuntu-s2' ]; then
+            sh '''#!/bin/bash
+                  if [[ "$NODE_LABELS" =~ docker ]]; then
                       ./updateBin.sh
                       ./docker-utilities clean
                   fi

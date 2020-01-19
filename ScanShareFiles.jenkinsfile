@@ -11,9 +11,9 @@ pipeline {
         timestamps()
     }
     parameters{
-                string(name: 'SLAVE', defaultValue: 'ubuntu-s1', description: '') 
+                string(name: 'SLAVE', defaultValue: 'ubuntu-s4', description: '') 
                 text(name: 'DIRECTORIES', 
-                     defaultValue: '/mnt/WDMyCloud /mnt/Guest',
+                     defaultValue: '/mnt/Synology',
                      description: 'directories location to scan')
     }
 
@@ -25,22 +25,16 @@ pipeline {
                 checkout scm
                 sh './updateBin.sh'
                 sh './scanShareFiles.sh ' + params.DIRECTORIES
-            }
-        }
-        stage (Archive) {
-            agent { label params.SLAVE }
-            steps {
                 archiveArtifacts allowEmptyArchive: true, artifacts: '*.json'
             }
         }
     }
     post {
         always {
-//            archiveArtifacts allowEmptyArchive: true, artifacts: '*.json'
             kafkaBuildReporter()
         }
-//        cleanup {
-//            deleteDir()
-//        }
+        cleanup {
+            deleteDir()
+        }
     }
 }
