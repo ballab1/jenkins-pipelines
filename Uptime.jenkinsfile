@@ -23,7 +23,7 @@ pipeline {
                                   stash includes: "${nodeName}.txt", name: nodeName
                                   script {
                                       def uptime = readFile("${nodeName}.txt")
-                                      kafkaProducer('uptime',[ toJSON([ "${nodeName}" : parseUptime(uptime) ]) ])
+                                      kafkaProducer('uptime',[ toJSON([ "name": nodeName, "uptime": parseUptime(uptime) ]) ])
                                   }
                               })
             }

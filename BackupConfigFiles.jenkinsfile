@@ -9,8 +9,8 @@ processInParallel (
     },
     action: { nodeName ->
         def tarfile = nodeName + '.cfg.tgz'
-        sh "tar -cvzf ${tarfile} ./tarfiles.lst ||:"
-        sh "sudo cp ${tarfile} /home/bobb/xsrc" 
-        archiveArtifacts "${tarfile}" 
+        sh "tar -cvzf ${tarfile} -T ./tarfiles.lst ||:"
+        sh "sudo cp ${tarfile} /home/bobb/src" 
+        archiveArtifacts tarfile
     }
 )

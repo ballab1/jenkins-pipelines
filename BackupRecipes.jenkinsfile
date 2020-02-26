@@ -8,8 +8,8 @@ processInParallel (
         fixedNodeStep(tarfile, body)
     },
     action: { tarfile ->
-        sh "tar czf '${WORKSPACE}/${tarfile}' -C /home/bobb/production/workspace.production/zen recipes ||:"
-        sh "sudo cp '${WORKSPACE}/${tarfile}' /home/bobb/xsrc/"
+        sh "cd /home/bobb/production/workspace.production/www/recipes; tar czf '${WORKSPACE}/${tarfile}' * ||:"
+        sh "cp '${WORKSPACE}/${tarfile}' /home/bobb/src/"
         archiveArtifacts tarfile
     }
 )

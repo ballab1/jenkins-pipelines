@@ -18,9 +18,10 @@ pipeline {
         ansiColor('xterm') {
           checkout scm
           sh '''
+                unset USER; unset USERNAME
 	        ./updateBin.sh
-	        ./docker-utilities delete --max 6 --no_confirm_delete 'alpine/.*'
-	        ./docker-utilities delete --max 2 --no_confirm_delete 'i386-ubuntu/.*' 'thirdparty/.*'
+	        ./docker-utilities delete --max 6 --no_confirm_delete 'alpine/.*' ||:
+	        ./docker-utilities delete --max 2 --no_confirm_delete 'i386-ubuntu/.*' 'thirdparty/.*' ||:
 	     '''
         }
       }

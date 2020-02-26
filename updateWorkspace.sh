@@ -55,22 +55,27 @@ function run()
 function updateGitDir()
 {
     # do nothing if directory is dirty. just report error
-    [ $(git status --porcelain) ] && return 1
+    [ "$(git status --porcelain --ignore-submodules)" ] && return 1
 
-    local -r branches="$(DEBUG_TRACE=1 git branch)"
-    local -r ref="$(echo "$branches" | awk '{if (NF>1) {sub("([^A-Za-z0-9_/])","",$2); print $2}}' )"
+    local -r ref="$(git rev-parse --abbrev-ref HEAD)"
 
-    if [ "${ref:-}" ]; then
-        run git fetch --all --recurse-submodules
-        local branch
-        for branch in $(echo "$branches" | awk '{print substr($0,3)}'); do
-            if [[ "$branch" = \(HEAD* ]]; then
-                run git reset --hard "origin/master"
-            else
-                run git checkout "$branch"
-                run git reset --hard "origin/$branch"
-            fi
-        done
+    run git fetch --all --recurse-submodules
+    local branch
+    local -a branches
+    mapfile -t branches < <(git branch | sed -E 's|^..||')
+    readonly branches
+    for branch in "${branches[@]}"; do
+        if [[ "${branch:0:5}" = '(HEAD' ]]; then
+            run git reset --hard "origin/master"
+        else
+            run git checkout "$branch"
+            run git reset --hard "origin/$branch"
+        fi
+    done
+    if [ "$ref" = HEAD ]; then
+        run git reset --hard "origin/master"
+    else
+        run git checkout "$ref"
     fi
     return 0
 }
@@ -80,13 +85,16 @@ function updateGitDir()
 declare -r grey='\e[90m'
 declare -r white='\e[97m'
 declare -r reset='\e[0m'
-declare -r dirsFile="$(hostname).dirs"
 declare -i status=0
+
+declare host="${NODE_NAME:-$(hostname)}"
+declare -r results="${1:-${host}}.inf"
+declare -r dirsFile="${host}.dirs"
 
 if [ -e "$dirsFile" ]; then
 
     process 'false' 'false' && status=$? || status=$?
-    ( process 'false' 'true' ||: ) | tee "$(hostname).inf"
+    ( process 'false' 'true' ||: ) | tee "$results"
 
 fi
 exit 0
