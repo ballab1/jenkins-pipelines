@@ -9,7 +9,7 @@ processInParallel (
     },
     action: { dir ->
         sh "tar czf '${WORKSPACE}/${dir}_cache.tgz' --directory /home/bobb/production/workspace.production/${dir}/cache ."
-        sh "sudo cp '${WORKSPACE}/${dir}_cache.tgz' /home/bobb/xsrc/"
+        sh "sudo cp '${WORKSPACE}/${dir}_cache.tgz' /home/bobb/src/"
         archiveArtifacts dir+'_cache.tgz'
     }
 )

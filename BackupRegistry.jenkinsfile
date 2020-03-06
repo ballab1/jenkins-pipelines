@@ -4,9 +4,10 @@ timestamps {
     node('ubuntu-s2') {
         stage ('Backup Registry') {
             def src='/var/lib/docker-registry/docker/registry/v2/'
-            def dst='/mnt/Guest/Docker-Registry'
-//            sh "sudo rsync --itemize-changes --links --recursive --force --stats ${src} ${dst}"
-            sh "sudo rsync --archive --force --stats ${src} ${dst} | tee rsync.log"
+//            def dst='bobb@nas.home:/volume1/Docker-Registry'
+            def dst='/mnt/Registry'
+//            sh "sudo rsync --compress --delete --devices --executability --force --no-group --no-owner --password-file='/home/bobb/.inf.nas.rsync' --prune-empty-dirs --recursive --safe-links --specials --stats '$src' '$dst' | tee rsync.log"
+            sh "sudo -u xxxxxx rsync --delete --devices --executability --force --no-group --no-owner --prune-empty-dirs --recursive --safe-links --specials --stats --times '$src' '$dst' | tee rsync.log"
             archiveArtifacts artifacts: 'rsync.log' 
         }
     }

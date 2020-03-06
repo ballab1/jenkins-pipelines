@@ -1,8 +1,9 @@
-/home/bobb/.inf
-/home/bobb/.profile
-/home/bobb/.ssh/known_hosts
-/home/bobb/.work
-/home/bobb/bin
+/home/bobb/.bash_aliases
+/home/bobb/.bash_logout
+/home/bobb/.bashrc
+/home/bobb/.gitconfig
+/home/bobb/.crypt-key
+/home/bobb/.tmux.conf
 /etc/apt
 /etc/bash.bashrc
 /etc/bash_completion

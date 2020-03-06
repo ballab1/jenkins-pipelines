@@ -1,34 +1,37 @@
 #!/bin/bash
 
 #-----------------------------------------------------------------------------------------------
-function scanShareFiles.checkTime() {
-
-    local -ri secondsSinceMidnight=$(date -d "1970-01-01 UTC $(date +%T)" +%s)
-
-    # sleep between 03:03:30 and 03:06:00
-    if [ "$secondsSinceMidnight" -gt 11010 ] && [ "$secondsSinceMidnight" -lt 11160 ]; then
-        sleep $(( 11160 - $secondsSinceMidnight ))
-    fi
-    return 0
-}
-
-#-----------------------------------------------------------------------------------------------
 function scanShareFiles.fileData() {
 
-    declare -A stat_vals
-    eval "stat_vals=( $(stat --format="['file_name']="'"%n"'" ['mount_point']='%m' ['time_of_birth']='%w'" "$1") )"
-    local mount_point="$(grep -E '\s'"${stat_vals['mount_point']}"'\s' /etc/fstab | awk '{print $1}')"
+    local file="$(basename $1)"
+
+    local name="$(basename "$file")"
+    local folder="$(cd "$(dirname "$file")"; pwd)"
+    name="${name//\"/\\\"}"
+    folder="${folder//\"/\\\"}"
+
+    local -A stat_vals
+    eval "stat_vals=( $(stat --format="['mount_point']='%m' ['time_of_birth']='%w'" "$1") )"
+    local mount_source="$(grep -E '\s'"${stat_vals['mount_point']}"'\s' /etc/fstab | awk '{print $1}')"
 
     local tob="${stat_vals['time_of_birth']}"
     [ "$tob" = '-' ] && tob='unknown'
 
-    local file="${stat_vals['file_name']}"
+    echo -n '{"name":"'"$name"'",' \
+            '"folder":"'"$folder"'",' \
+            '"mount_point":"'"${stat_vals['mount_point']}"'",' \
+            '"mount_source":"'"$mount_source"'",'
 
-    echo -n '"name":"'"$(basename "$file")"'",' \
-            '"folder":"'"$(cd "$(dirname "$file")"; pwd)"'",' \
-            '"mount_point":"'"$mount_point"'",'
-
-    [ -h "$file" ] && echo -n '"link_reference":'"$(readlink -f "$file" )"'",'
+    if [ -h "$file" ]; then
+        local ref2="$(readlink -f "$file" 2>/dev/null ||:)"
+        if [ "${ref2:-}" ]; then
+            echo -n '"symlink_reference":"'"$ref2"'",'
+        else
+            echo -n '"symlink_reference":null,'
+            local ref="$(stat --format='%N' "$file" | awk '{print  substr($3,2,length($3)-2) }')"
+            echo -n '"link_reference":"'"$ref"'",'
+        fi
+    fi
     [ -f "$file" ] && echo -n '"sha256":"'"$( sha256sum -b "$file" | cut -d ' ' -f 1 )"'",'
 
     local -a fields=( '"size":%s,'
@@ -54,87 +57,84 @@ function scanShareFiles.fileData() {
                       '"last_modified":%Y,'
                       '"last_modified__HRF":"%y",'
                       '"last_status_change":%Z,'
-                      '"last_status_change__HRF":"%z"' )
+                      '"last_status_change__HRF":"%z"}\n' )
 
-    stat --format="${fields[*]}" "$file"
+    stat --printf="$(echo ${fields[*]})" "$file"
 }
 
 #-----------------------------------------------------------------------------------------------
-function scanShareFiles.fileData_old() {
+function scanShareFiles.old_fileData() {
 
-    json.encodeField "file_name"                                          "$(basename "$(stat --format='%n' "$1")")" 'string'
+    echo -n '{'
+    json.encodeField "name"                                               "$(basename "$(stat --format='%n' "$1")")" 'string'
     echo -n ','
     json.encodeField "folder"                                             "$(cd "$(dirname "$1")"; pwd)" 'string'
+    #  decode this to real mountpoint. Also remove this string from 'folder' and add real mount point without host.
+    #  unless, mountpoint is local in which case host is fqdn
+    echo -n ','
+    local mount_point="$(grep -E '\s'"$(stat --format='%m' "$1")"'\s' /etc/fstab | awk '{print $1}')"
+    json.encodeField "mount_point"                                        "$mount_point" 'string'
     if [ -h "$1" ]; then
         echo -n ','
-        json.encodeField "file_name_with_dereference_if_symbolic_link"    "$(readlink -f "$1" )" 'string'
+        json.encodeField "link_reference"                                 "$(readlink -f "$1" )" 'string'
     fi
-    echo -n ','
-    json.encodeField "file_type"                                          "$(stat --format='%F' "$1")" 'string'
-    echo -n ','
-    json.encodeField "access_rights"                                      "$(stat --format='%a' "$1")" 'string'
-    echo -n ','
-    json.encodeField "access_rights__in_human_readable_form"              "$(stat --format='%A' "$1")" 'string'
-    echo -n ','
-    json.encodeField "total_size"                                         "$(stat --format='%s' "$1")" 'integer'
-    echo -n ','
-    json.encodeField "user_ID_of_owner"                                   "$(stat --format='%u' "$1")" 'string'
-    echo -n ','
-    json.encodeField "user_name_of_owner"                                 "$(stat --format='%U' "$1")" 'string'
-    echo -n ','
-    json.encodeField "owner_group"                                        "$(stat --format='%g' "$1")" 'string'
-    echo -n ','
-    json.encodeField "owner_group_name"                                   "$(stat --format='%G' "$1")" 'string'
-    echo -n ','
-    json.encodeField "device_number_hex"                                  "$(stat --format='0x%D' "$1")" 'string'
-    echo -n ','
-    json.encodeField "inode"                                              "$(stat --format='%i' "$1")" 'integer'
-    echo -n ','
-    json.encodeField "number_of_blocks_allocated"                         "$(stat --format='%b' "$1")" 'integer'
-    echo -n ','
-    json.encodeField "number_of_hard_links"                               "$(stat --format='%h' "$1")" 'integer'
-    echo -n ','
-    json.encodeField "optimal_IO_transfer_size_hint"                      "$(stat --format='%o' "$1")" 'integer'
-    echo -n ','
-    json.encodeField "raw_mode"                                           "$(stat --format='0x%f' "$1")" 'string'
-    echo -n ','
-    json.encodeField "size_of_each_reported_block"                        "$(stat --format='%B' "$1")" 'integer'
     if [ -f "$1" ]; then
         echo -n ','
         json.encodeField "sha256"                                         "$( sha256sum -b "$1" | awk '{ print $1 }' )" 'string'
     fi
+
     echo -n ','
-    json.encodeField "device_number_decimal"                              "$(stat --format='%d' "$1")" 'integer'
+    json.encodeField "size"                                               "$(stat --format='%s' "$1")" 'integer'
     echo -n ','
-    json.encodeField "major_device_type_in_hex"                           "$(stat --format='0x%t' "$1")" 'string'
+    json.encodeField "blocks"                                             "$(stat --format='%b' "$1")" 'integer'
     echo -n ','
-    json.encodeField "minor_device_type_in_hex"                           "$(stat --format='0x%T' "$1")" 'string'
-    if [ "$(stat --format='%a' "$1")" != '770' ]; then
-        #  decode this to real mountpoint. Also remove this string from 'folder' and add real mount point without host.
-        #  unless, mountpoint is local in which case host is fqdn
-        echo -n ','
-        json.encodeField "mount_point"                                    "$(stat --format='%m' "$1")" 'string'
-    fi
+    json.encodeField "block_size"                                         "$(stat --format='%B' "$1")" 'integer'
+    echo -n ','
+    json.encodeField "xfr_size_hint"                                      "$(stat --format='%o' "$1")" 'integer'
+    echo -n ','
+    json.encodeField "device_number"                                      "$(stat --format='%d' "$1")" 'integer'
+    echo -n ','
+    json.encodeField "file_type"                                          "$(stat --format='%F' "$1")" 'string'
+    echo -n ','
+    json.encodeField "uid"                                                "$(stat --format='%u' "$1")" 'string'
+    echo -n ','
+    json.encodeField "uname"                                              "$(stat --format='%U' "$1")" 'string'
+    echo -n ','
+    json.encodeField "gid"                                                "$(stat --format='%g' "$1")" 'string'
+    echo -n ','
+    json.encodeField "gname"                                              "$(stat --format='%G' "$1")" 'string'
+    echo -n ','
+    json.encodeField "access_rights"                                      "$(stat --format='%a' "$1")" 'string'
+    echo -n ','
+    json.encodeField "access_rights__HRF"                                 "$(stat --format='%A' "$1")" 'string'
+    echo -n ','
+    json.encodeField "inode"                                              "$(stat --format='%i' "$1")" 'integer'
+    echo -n ','
+    json.encodeField "hard_links"                                         "$(stat --format='%h' "$1")" 'integer'
+    echo -n ','
+    json.encodeField "raw_mode"                                           "$(stat --format='0x%f' "$1")" 'string'
+    echo -n ','
+    json.encodeField "device_type"                                        "$(stat --format='0x%t:0x%T' "$1")" 'string'
 
     local tob="$(stat --printf='%w' "$1")"
     [ "$tob" = '-' ] && tob='unknown'
     echo -n ','
-    json.encodeField "time_of_file_birth__human_readable"                 "$tob" 'string'
+    json.encodeField "file_created"                                       "$(stat --format='%W' "$1")" 'integer'
     echo -n ','
-    json.encodeField "time_of_file_birth__seconds_since_Epoch"            "$(stat --format='%W' "$1")" 'integer'
+    json.encodeField "file_created__HRF"                                  "$tob" 'string'
     echo -n ','
-    json.encodeField "time_of_last_access__human_readable"                "$(stat --format='%x' "$1")" 'string'
+    json.encodeField "last_access"                                        "$(stat --format='%X' "$1")" 'integer'
     echo -n ','
-    json.encodeField "time_of_last_access__seconds_since_Epoch"           "$(stat --format='%X' "$1")" 'integer'
+    json.encodeField "last_access__HRF"                                   "$(stat --format='%x' "$1")" 'string'
     echo -n ','
-    json.encodeField "time_of_last_data_modification__human_readable"     "$(stat --format='%y' "$1")" 'string'
+    json.encodeField "last_modified"                                      "$(stat --format='%Y' "$1")" 'integer'
     echo -n ','
-    json.encodeField "time_of_last_data_modification__seconds_since_Epoch" "$(stat --format='%Y' "$1")" 'integer'
+    json.encodeField "last_modified__HRF"                                 "$(stat --format='%y' "$1")" 'string'
     echo -n ','
-    json.encodeField "time_of_last_status_change__human_readable"         "$(stat --format='%z' "$1")" 'string'
+    json.encodeField "last_status_change"                                 "$(stat --format='%Z' "$1")" 'integer'
     echo -n ','
-    json.encodeField "time_of_last_status_change__seconds_since_Epoch"    "$(stat --format='%Z' "$1")" 'integer'
-    echo
+    json.encodeField "last_status_change__HRF"                            "$(stat --format='%z' "$1")" 'string'
+    echo '}'
 }
 
 #-----------------------------------------------------------------------------------------------
@@ -178,18 +178,19 @@ function scanShareFiles.scan() {
             popd > /dev/null
 
         else
-            local json="$( json.encodeField '--' "$(scanShareFiles.fileData "$file")" 'json' )" 2>> "$ERROR_FILE"
+            (( FILE_COUNT++ )) || return 0
 
-            {
-                (( FILE_COUNT++ )) || return 0
-                stdbuf --output 0 echo  "$json"
-            } >> "$JSON_FILE"
+            local json="$( scanShareFiles.fileData "$file" )" 2>> "$ERROR_FILE"
+            [ "${json:-}" ] || return $status
 
             if [ "${KAFKA_PRODUCER:-}" ] && [ "$KAFKA_BOOTSTRAP_SERVERS" ]; then
                 ("$KAFKA_PRODUCER" --server "$KAFKA_BOOTSTRAP_SERVERS" \
                                    --topic 'fileScanner' \
                                    --value "$json"
                 ) && status=$? || status=$?
+            else
+
+                stdbuf --output 0  echo "$json" >> "$JSON_FILE"
             fi
         fi
 

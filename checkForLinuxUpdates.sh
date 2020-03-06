@@ -41,6 +41,7 @@ function latestUpdates()
 
 function main()
 {
+    rm *.txt "$RESULTS" "$JOB_STATUS"
     :> "$RESULTS"
     :> "$JOB_STATUS"
 

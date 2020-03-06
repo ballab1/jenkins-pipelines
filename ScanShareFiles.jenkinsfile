@@ -23,8 +23,11 @@ pipeline {
             agent { label params.SLAVE }
             steps {
                 checkout scm
-                sh './updateBin.sh'
-                sh './scanShareFiles.sh ' + params.DIRECTORIES
+                sh '''
+                   ./updateBin.sh'
+                   ./scanShareFiles.sh ''' + params.DIRECTORIES + '''
+                   jq -s 'def files($f): { "count": $f|length,  "size":[$f[].size]|add }; . as $scan | files($scan) as $all | files( $scan|unique_by(.sha256) ) as $uniq | {"count":($all.count - $uniq.count), "size":($all.size - $uniq.size)} as $diff |{"files": $all, "uniq": $uniq, "diff":$diff}' ./files.json
+                '''
                 archiveArtifacts allowEmptyArchive: true, artifacts: '*.json'
             }
         }

@@ -1,5 +1,6 @@
 @Library('jenkins-sharedlibs')_
 
+
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
 def hosts = [:]
@@ -9,14 +10,16 @@ def names = []
 def prepareNodeStage(String host) {
   return {
     node (host) {
+      deleteDir()
       checkout scm
       unstash 'dirspecs'
       sh '''
             hostname
             ./updateBin.sh
-            ./updateWorkspace.sh
+            ./updateWorkspace.sh  ''' + host + '''
          '''
       stash name: host, allowEmpty: true, includes: '*.inf'
+      deleteDir()
     }
   }
 }
@@ -52,9 +55,14 @@ timestamps {
       checkout scm
       updateRepoDirs reponame
       stash name: 'dirspecs', allowEmpty: true, includes: '*.dirs'
-      names = activeNodes()
-      for (host in names) {
-        hosts["${host}"] = prepareNodeStage(host)
+      for (host in activeNodes()) {
+        if (fileExists(host + '.dirs')) {
+          hosts["${host}"] = prepareNodeStage(host)
+          names += host
+        }
+      }
+      if (names.size() == 0) {
+        manager.buildUnstable() 
       }
     }
   }
@@ -65,30 +73,15 @@ timestamps {
 
   stage ('Generate Report') {
     node {
-      sh '''
-         rm *.inf *.dirs ||:
-         :> results.txt
-         date >> results.txt
-         echo >> results.txt
-      '''
-      for (host in names) {
-        try {
-          unstash host
-          sh '[ ! -e "' + host + '.inf" ] || (cat "' + host + '.inf" >> results.txt)'
-//          sh "[ ! -e '${host}.inf' ] || (cat '${host}.inf' >> results.txt)"
-         }
-         catch (error) { 
-           echo 'No information found for ' + host
-         }
-      }
-      archiveArtifacts allowEmptyArchive: true, artifacts: 'results.txt,*.inf'
+      updateRepoDirsResults(names)
+      deleteDir()
     }
   }
 
   stage ('submit-metrics') {
     node {
       kafkaBuildReporter()
+      deleteDir()
     }
   }
-
 }
