@@ -15,21 +15,12 @@ pipeline {
     string(name: 'TARGET_DIR', defaultValue: '/home/bobb/kafka-deploy', description: 'target directory for config files')   }
 
   stages {
-    stage ('ubuntu-s1') {
-      agent { label 'ubuntu-s1' }
-      steps {
-        ansiColor('xterm') {
-          sh './updateBin.sh'
-          updateWorkspace(params.TARGET_DIR, ['./deploy', '-l', '-c', params.CONTAINER_TAG])
-        }
-      }
-    }
     stage ('ubuntu-s3') {
       agent { label 'ubuntu-s3' }
       steps {
         ansiColor('xterm') {
           sh './updateBin.sh'
-          updateWorkspace(params.TARGET_DIR, ['./deploy', '-l', '-c', params.CONTAINER_TAG])
+          updateWorkspace(params.TARGET_DIR, ['./deploy', '--latest', '--tag', params.CONTAINER_TAG])
         }
       }
     } 
@@ -38,10 +29,19 @@ pipeline {
       steps {
         ansiColor('xterm') {
           sh './updateBin.sh'
-          updateWorkspace(params.TARGET_DIR, ['./deploy', '-l', '-c', params.CONTAINER_TAG])
+          updateWorkspace(params.TARGET_DIR, ['./deploy', '--latest', '--tag', params.CONTAINER_TAG])
         }
       }
     } 
+    stage ('ubuntu-s8') {
+      agent { label 'ubuntu-s8' }
+      steps {
+        ansiColor('xterm') {
+          sh './updateBin.sh'
+          updateWorkspace(params.TARGET_DIR, ['./deploy', '--latest', '--tag', params.CONTAINER_TAG])
+        }
+      }
+    }
   }
   post {
     always {

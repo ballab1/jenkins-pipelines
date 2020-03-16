@@ -1,14 +1,14 @@
 {
-  "ubuntu-s1": [
-    "/home/bobb/kafka-deploy"
-  ],
   "ubuntu-s3": [
     "/home/bobb/kafka-deploy"
   ],
   "ubuntu-s4": [
-    "/home/bobb/GIT/kafka-deploy-s1",
     "/home/bobb/GIT/kafka-deploy-s3",
     "/home/bobb/GIT/kafka-deploy-s4",
+    "/home/bobb/GIT/kafka-deploy-s8",
+    "/home/bobb/kafka-deploy"
+  ],
+  "ubuntu-s8": [
     "/home/bobb/kafka-deploy"
   ]
 }
