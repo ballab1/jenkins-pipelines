@@ -6,8 +6,11 @@ metadata:
   labels:
     jenkins-label: POD_LABEL
 spec:
-  containers:
-  - name: jnlp
-    image: ubuntu-s2.home:5000/thirdparty/jnlp-slave:alpine
-    args: [ '-url', '\${JENKINS_URL}', '\$(JENKINS_SECRET)', '\$(JENKINS_NAME)' ]
-    tty: true
+  ttlSecondsAfterFinished: 120
+  spec:
+    containers:
+    - name: jnlp
+      image: ubuntu-s2.home:5000/thirdparty/jnlp-slave:alpine
+      args: [ '-url', '\${JENKINS_URL}', '\$(JENKINS_SECRET)', '\$(JENKINS_NAME)' ]
+      tty: true
+    restartPolicy: Never

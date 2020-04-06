@@ -17,8 +17,8 @@ function scanShareFiles.fileData() {
     local tob="${stat_vals['time_of_birth']}"
     [ "$tob" = '-' ] && tob='unknown'
 
-    echo -n '{"name":"'"$name"'",' \
-            '"folder":"'"$folder"'",' \
+    echo -n '{"name":"'"$(escape "$name")"'",' \
+            '"folder":"'"$(escape "$folder")"'",' \
             '"mount_point":"'"${stat_vals['mount_point']}"'",' \
             '"mount_source":"'"$mount_source"'",'
 
@@ -60,6 +60,12 @@ function scanShareFiles.fileData() {
                       '"last_status_change__HRF":"%z"}\n' )
 
     stat --printf="$(echo ${fields[*]})" "$file"
+}
+
+#-----------------------------------------------------------------------------------------------
+function escape() {
+
+     python3 -c "import sys; x = sys.stdin.read(); x = x.rstrip(); print (x.encode('ascii', 'xmlcharrefreplace'));" < <(echo $1)
 }
 
 #-----------------------------------------------------------------------------------------------
