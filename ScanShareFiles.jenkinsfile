@@ -11,10 +11,10 @@ pipeline {
         timestamps()
     }
     parameters{
-                string(name: 'SLAVE', defaultValue: 'ubuntu-s7', description: '') 
-                text(name: 'DIRECTORIES', 
-                     defaultValue: '/mnt/WDMyCloud/Guest /mnt/WDMyCloud/Public /mnt/WDMyCloud/Seagate_Expansion_Drive',
-                     description: 'directories location to scan')
+        string(name: 'SLAVE', defaultValue: 'ubuntu-s7', description: '') 
+        text(name: 'DIRECTORIES', 
+        defaultValue: '/mnt/WDMyCloud/Guest /mnt/WDMyCloud/Public /mnt/WDMyCloud/Seagate_Expansion_Drive',
+        description: 'directories location to scan')
     }
 
      
@@ -25,7 +25,7 @@ pipeline {
                 checkout scm
                 sh '''
                    ./updateBin.sh
-                   ./scanShareFiles.sh ''' + params.DIRECTORIES + '''
+                   ./scanShareFiles.py ''' + params.DIRECTORIES + '''
                    jq -s 'def files($f): { "count": $f|length,  "size":[$f[].size]|add }; . as $scan | files($scan) as $all | files( $scan|unique_by(.sha256) ) as $uniq | {"count":($all.count - $uniq.count), "size":($all.size - $uniq.size)} as $diff |{"files": $all, "uniq": $uniq, "diff":$diff}' ./files.json ||:
                 '''
                 archiveArtifacts allowEmptyArchive: true, artifacts: '*.json'
