@@ -2,31 +2,34 @@
 #  -*- coding: utf-8 -*-
 
 """
-showLines
+scanShareFiles
 
-    show lines from a file based on a range of times.
-    requires that the first field (column) of the file is a time field
+    scan a folder and produce JSON stream of attributes foreach file found
 
 See the usage method for more information and examples.
 
 """
 # Imports: native Python
 import argparse
+import codecs
 import datetime
 import gc
 import hashlib
+import io
 import json
 import logging
 import logging.handlers
 import os
 import os.path
 import random
+import re
 import socket
 import sys
+import tempfile
 from uuid import uuid1
 
 # 3rd party imports
-from confluent_kafka import Producer, Consumer, KafkaError, OFFSET_BEGINNING, OFFSET_END, OFFSET_STORED, OFFSET_INVALID
+#from confluent_kafka import Producer, Consumer, KafkaError, OFFSET_BEGINNING, OFFSET_END, OFFSET_STORED, OFFSET_INVALID
 
 
 def usage():
@@ -44,62 +47,67 @@ Usage:
 
 def fileInfo(file):
     data = dict()
-
     data['name'] = os.path.basename(file)
     data['folder'] = os.path.abspath(os.path.dirname(file))
 
-#    data['name'] = os.path.basename(file).encode('ascii', 'xmlcharrefreplace')
-#    data['folder'] = os.path.abspath(os.path.dirname(file)).encode('ascii', 'xmlcharrefreplace')
-
-#    data['mount_point'] = os.path.dirname(file)
-#    data['mount_source'] = os.path.dirname(file)
-
-#    drive, path = os.path.splitdrive(file)
-#    drive, path = os.path.splittext(file)
-
-#    eval "stat_vals=( $(stat --format="['mount_point']='%m' ['time_of_birth']='%w'" "$1") )"
-#    local mount_source="$(grep -E '\s'"${stat_vals['mount_point']}"'\s' /etc/fstab | awk '{print $1}')"
-
-    if os.path.islink(file):
-        if os.path.exists(file):
-            data['symlink_reference'] = os.path.realpath(file)
-        else:
-            data['symlink_reference'] = None
-            data['link_reference'] = os.path.realpath(file)
-            return data
-
-    if os.path.isfile(file) and not os.path.islink(file):
-        data['sha256'] = hashlib.sha256(open(file, mode='rb').read()).hexdigest()
-
-    stat = os.stat(file)
-    data['size'] = stat.st_size
-#    data['blocks'] = stat.st_blocks
-#    data['block_size'] = stat.blksize
-
-#    data['xfr_size_hint'] = stat.st_size
-#    data['device_number'] = stat.st_size
-#    data['file_type'] = stat.st_rdev
-
-    data['uid'] = stat.st_uid
-#    data['uname'] = stat.st_size
-    data['gid'] = stat.st_gid
-#    data['gname'] = stat.st_size
-    data['access_rights'] = stat.st_mode
-#    data['access_rights_time'] = stat.st_size
-    data['inode'] = stat.st_ino
-    data['hard_links'] = stat.st_nlink
-#    data['raw_mode'] = stat.st_size
-#    data['device_type'] = stat.st_size
-#    data['file_created'] = stat.st_birthtime
-#    data['file_created_time'] = zulu_timestamp(stat.birthtime)
-    data['last_access'] = int(stat.st_atime)
-    data['last_access_time'] = zulu_timestamp(stat.st_atime)
-    data['last_modified'] = int(stat.st_mtime)
-    data['last_modified_time'] = zulu_timestamp(stat.st_mtime)
-    data['last_status_change'] = int(stat.st_ctime)
-    data['last_status_change_time'] = zulu_timestamp(stat.st_ctime)
+##    data['name'] = os.path.basename(file).encode('ascii', 'xmlcharrefreplace')
+##    data['folder'] = os.path.abspath(os.path.dirname(file)).encode('ascii', 'xmlcharrefreplace')
+#
+##    data['mount_point'] = os.path.dirname(file)
+##    data['mount_source'] = os.path.dirname(file)
+#
+##    drive, path = os.path.splitdrive(file)
+##    drive, path = os.path.splittext(file)
+#
+##    eval "stat_vals=( $(stat --format="['mount_point']='%m' ['time_of_birth']='%w'" "$1") )"
+##    local mount_source="$(grep -E '\s'"${stat_vals['mount_point']}"'\s' /etc/fstab | awk '{print $1}')"
+#
+#    if os.path.islink(file):
+#        if os.path.exists(file):
+#            data['symlink_reference'] = os.path.realpath(file)
+#        else:
+#            data['symlink_reference'] = None
+#            data['link_reference'] = os.path.realpath(file)
+#            return data
+#
+#    if os.path.isfile(file) and not os.path.islink(file):
+#        data['sha256'] = hashlib.sha256(open(file, mode='rb').read()).hexdigest()
+#
+#    stat = os.stat(file)
+#    data['size'] = stat.st_size
+##    data['blocks'] = stat.st_blocks
+##    data['block_size'] = stat.blksize
+#
+##    data['xfr_size_hint'] = stat.st_size
+##    data['device_number'] = stat.st_size
+##    data['file_type'] = stat.st_rdev
+#
+#    data['uid'] = stat.st_uid
+##    data['uname'] = stat.st_size
+#    data['gid'] = stat.st_gid
+##    data['gname'] = stat.st_size
+#    data['access_rights'] = stat.st_mode
+##    data['access_rights_time'] = stat.st_size
+#    data['inode'] = stat.st_ino
+#    data['hard_links'] = stat.st_nlink
+##    data['raw_mode'] = stat.st_size
+##    data['device_type'] = stat.st_size
+##    data['file_created'] = stat.st_birthtime
+##    data['file_created_time'] = zulu_timestamp(stat.birthtime)
+#    data['last_access'] = int(stat.st_atime)
+#    data['last_access_time'] = zulu_timestamp(stat.st_atime)
+#    data['last_modified'] = int(stat.st_mtime)
+#    data['last_modified_time'] = zulu_timestamp(stat.st_mtime)
+#    data['last_status_change'] = int(stat.st_ctime)
+#    data['last_status_change_time'] = zulu_timestamp(stat.st_ctime)
     return data
 
+# codecs.open(filename, mode[, encoding[, errors[, buffering]]])¶
+def to_unicode_or_bust(obj, encoding='utf-8'):
+    if isinstance(obj, basestring):
+        if not isinstance(obj, unicode):
+            obj = unicode(obj, encoding)
+    return obj
 
 def uuid1mc_insecure():
     return str(uuid1(random.getrandbits(48) | 0x010000000000))
@@ -108,33 +116,7 @@ def zulu_timestamp(tstamp):
     return datetime.datetime.fromtimestamp(tstamp).strftime("%Y-%m-%dT%I:%M:%S.%fZ")
 
 
-class KafkaProducer(object):
-    def __init__(self, server, topic):
-        self.topic = topic
-        # bootstrap.servers  - A list of host/port pairs to use for establishing the initial connection to the Kafka cluster
-        # client.id          - An id string to pass to the server when making requests
-        self.kafka = Producer({"bootstrap.servers": server,
-                                  "client.id": socket.gethostname()})
-        return
-
-    def produce(self, value=None, key=None):
-        # Convert value and key to utf-8 format
-        json_objects = json.loads(value)
-        json_objects['timestamp'] = zulu_timestamp()
-        json_objects['uuid'] = uuid1mc_insecure()
-
-        input_data = dict()
-        input_data["topic"] = self.topic
-
-        input_data["value"] = json.dumps(json_objects)
-        input_data["key"] = key
-
-        self.logger.debug("Input Data to produce: \n %s" % input_data)
-        self.kafka.produce(**input_data)
-        # flush() - Wait for all messages in the Producer queue to be delivered
-        self.kafka.flush()
-
-
+#-----------------------------------------------------------------------------
 class GetArgs:
 
     def __init__(self):
@@ -188,10 +170,63 @@ class GetArgs:
         return
 
 
+#-----------------------------------------------------------------------------
+class FileProducer(object):
+    def __init__(self, filename, topic = ''):
+        self.filename = filename
+        self.opFile = open(filename, 'wt')
+        self.topic = topic
+        return
+
+    def close(self):
+        self.opFile.close()
+
+    def produce(self, value=None, key=None):
+        # Convert value to utf-8 format
+        f = self.opFile
+        f.write(json.dumps(value) + "\n")
+        f.flush()
+
+    def save(self, info):
+        self.opFile.write(info + "\n")
+
+
+
+#-----------------------------------------------------------------------------
+class KafkaProducer(object):
+    def __init__(self, server, topic):
+        self.topic = topic
+        # bootstrap.servers  - A list of host/port pairs to use for establishing the initial connection to the Kafka cluster
+        # client.id          - An id string to pass to the server when making requests
+ #       self.kafka = Producer({"bootstrap.servers": server,
+ #                                 "client.id": socket.gethostname()})
+        return
+
+    def produce(self, value=None, key=None):
+#        json_objects = dict()
+
+        # Convert value and key to utf-8 format
+        json_objects = json.loads(value)
+        json_objects['timestamp'] = zulu_timestamp()
+        json_objects['uuid'] = uuid1mc_insecure()
+
+        input_data = dict()
+        input_data["topic"] = self.topic
+
+        input_data["value"] = json.dumps(json_objects)
+        input_data["key"] = key
+
+        self.logger.debug("Input Data to produce: \n %s" % input_data)
+        self.kafka.produce(**input_data)
+        # flush() - Wait for all messages in the Producer queue to be delivered
+        self.kafka.flush()
+
+    def close(self):
+        self.kafka.close()
+
+
+#-----------------------------------------------------------------------------
 class ScanShareFiles:
-    """
-        CBF VersionUpdater class
-    """
 
     def __init__(self):
         self.logger = logging.getLogger(__name__)
@@ -210,65 +245,163 @@ class ScanShareFiles:
         self.logger.addHandler(fh)
         self.logger.addHandler(ch)
 
+        self.producer = None
+        self.opFile = None
+        self.dirs = dict()
+        self.changes = 0
+        self.file_count = 0
+        self.dir_count = 0
+
+
+    def change(self, root, file):
+        file2 = file
+        try:
+            file2 = file.decode('cp1252').encode('utf8', 'xmlcharrefreplace')
+        finally:
+            if file2 != file:
+                print ('rename: {} | {}, {}'.format(root,file,file2))
+                file = os.path.join(root, file)
+                file2 = os.path.join(root, file2)
+#                os.renames(file, file2)
+
+
+    def convert(self, basedir):
+        for root, dirs, files in os.walk(basedir):
+           for name in files:
+               self.change(root, name)
+               self.file_count += 1
+           for name in dirs:
+               self.dir_count += 1
+               self.change(root, name)
+        print ('   detected {} files on {}'.format(self.file_count, basedir))
+
+
+    def getDirType(self, dir, files):
+        if len(files)>0:
+            with tempfile.NamedTemporaryFile(mode='w+t',delete=False) as fh:
+                for line in files:
+                    fh.write(line)
+                fh.close()
+                stream = os.popen('file '+fh.name)
+                info = stream.read()
+                stream.close()
+                os.unlink(fh.name)
+                return info
+        return None
+
+
+    def listDirs(self, basedir):
+        self.producer = FileProducer('utf8.files')
+        filelist = []
+        lastroot = None   
+        for root, dirs, files in os.walk(basedir):
+            for name in files:
+                if lastroot != root:
+                    self.saveDirType(lastroot, filelist)
+                    filelist = []
+                    lastroot = root
+                self.file_count += 1
+                filelist.append(name + "\n")
+            for name in dirs:
+                self.dir_count += 1
+        self.saveDirType(lastroot, filelist)
+        self.producer.close()
+        print ('   detected {} files on {}'.format(self.file_count, basedir))
+
+
+    def listFiles(self, basedir):
+        fh = tempfile.NamedTemporaryFile(mode='w+t', delete=False)
+        for root, dirs, files in os.walk(basedir):
+            for name in files:
+                self.file_count += 1
+                file = os.path.join(root, name).decode('cp1252')
+                fh.write(file.encode('utf8', 'xmlcharrefreplace') + "\n")
+            for name in dirs:
+                self.dir_count += 1
+        fh.flush()
+        fh.close()
+        print ('   detected {} files on {}'.format(self.file_count, basedir))
+        return fh.name
+
 
     def main(self, cmdargs):
-
-        self.logger.debug("Entering main with args: %s" % cmdargs)
         args = GetArgs()
         args.validate_options()
         self.args = args
-        self.producer = None
-        self.opFile = None
+#        args.dirs = ['/mnt/Synology/Guest/All Users/Music.todo/20100702/Music/Wendy Carlos/Switched On Bach II',
+#                     '/mnt/Synology/Guest/All Users/Music.todo/20100619.Music.org/Faust/Faust IV']
+        for dir in args.dirs:
+            print('dirs:  '+dir)
+#            self.convert(dir)
+            self.listDirs(dir)
+#            self.listFiles(dir)
+#            self.showDirs(dir)
+#            self.testNames(dir)
 
+
+    def produceData(self, args, fileList):
         if args.kafka:
             self.producer = KafkaProducer(args.servers, args.topic)
         else:
-            self.opFile = open(args.file, 'w')
+            self.producer = FileProducer(args.file, args.topic)
+
+        with open(fileList, 'rt') as fd:
+           for file in fd:
+               file = file.strip()
+               data = fileInfo(file)
+               self.producer.produce(data)
+               del data
+
+        self.producer.close()
+        os.unlink(fileList)
 
 
-        file_count = 0
-        dir_count = 0
-        prompt=''
-
-        for file in args.dirs:
-            for root, dirs, files in os.walk(file):
-                dir_count += 1
-                '{}.\t[ {}, {} ]\t{} :\t{} files'.format(prompt, dir_count, file_count, root, 10 )
-                for name in files:
-                    file_count += 1
-                    filename = os.path.join(root, name)
-                    try:
-                        self.saveFileData(filename)
-                    except:
-                        print ('unable to create JSON for: {}'.format(filename))
-                    if (file_count %100) == 0:
-                        gc.collect()
-                for name in dirs:
-                    dir_count += 1
+    def saveDirType(self, dir, files):
+        info = self.getDirType(dir, files)
+        if info:
+            matches = re.match(r'^.+:\s+(ISO-8859 text).*$', info, re.M)
+            if matches:
+                self.producer.save(dir)
+            
 
 
+    def showDirs(self, basedir):
+        filelist = []
+        lastroot = None
+        for root, dirs, files in os.walk(basedir):
+            for name in files:
+                if lastroot != root:
+                    self.getDirType(lastroot, filelist)
+                    filelist = []
+                    lastroot = root
+                self.file_count += 1
+                filelist.append(name + "\n")
+            for name in dirs:
+                self.dir_count += 1
+        self.getDirType(lastroot, filelist)
+        print ('   detected {} files on {}'.format(self.file_count, basedir))
 
-    def saveFileData(self, filename):
 
-        data = fileInfo(filename)
-        json_value = json.dumps(data, ensure_ascii=False, indent=None, sort_keys=False)
-        del data
+    def testNames(self, basedir):
+        fh = open('filenames_utf.txt', mode='w+t')
+        for root, dirs, files in os.walk(basedir):
+            for name in files:
+                self.file_count += 1
+#                if not isinstance(name, unicode):
+#                    fh.write(root + '/' + name + "\n")
+            for name in dirs:
+                self.dir_count += 1
+                if not isinstance(name, unicode):
+                    fh.write(root + '/' + name + "\n")
+        fh.flush()
+        fh.close()
+        print ('   detected {} files on {}'.format(self.file_count, basedir))
 
-        if self.producer:
-            self.producer(json_value)
 
-        else:
-            f = self.opFile
-            f.write(json_value)
-            f.flush()
-        del json_value
-
-
-
+#-----------------------------------------------------------------------------
 
 # ### ----- M A I N   D R I V E R   C O D E ----- ### #
 
 if __name__ == "__main__":
-    gc.enable()
     out = ScanShareFiles()
     sys.exit(out.main(sys.argv[1:]))
