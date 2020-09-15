@@ -7,8 +7,8 @@ processInParallel (
         nodeStep(nodeName, body)
     },
     action: { nodeName ->
-        timeout(60) {
-            sh './checkForLinuxUpdates.sh "${nodeName}"'
+        timeout(90) {
+            sh './checkForLinuxUpdates.sh ' + nodeName
         }
         script {
             load './status.groovy'

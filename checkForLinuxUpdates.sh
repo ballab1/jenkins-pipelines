@@ -1,7 +1,6 @@
 #!/bin/bash
 
-set -o errtrace
-
+#----------------------------------------------------------------------------
 function extractMsg()
 {
     local -r msg="${1:?}"
@@ -14,22 +13,7 @@ function extractMsg()
     return 0
 }
 
-function onexit()
-{
-    if [ -s "$JOB_STATUS" ]; then
-      echo '========================================================='
-      cat "$JOB_STATUS"
-      echo '========================================================='
-    fi
-    echo
-    echo
-    if [ -s "$RESULTS" ]; then
-      echo 'show what was done'
-      cat "$RESULTS"
-    fi
-    return 0
-}
-
+#----------------------------------------------------------------------------
 function latestUpdates()
 {
     echo
@@ -39,20 +23,20 @@ function latestUpdates()
     local text
 
     text="$(sudo /usr/bin/apt-get update -y 2>"$ERRORS")" && status=$? || status=$?
-    echo "$text" | tee -a "$RESULTS"
+    echo "$text"
     if [ $status -ne 0 ]; then
         updateStatus "addBadge('error.gif','''${NODENAME}: apt-get update >> ${ERRORS}''')"
         return $status
     fi
 
     text="$(sudo /usr/bin/apt-get dist-upgrade -y 2>"$ERRORS")" && status=$? || status=$?
-    echo "$text" | tee -a "$RESULTS"
+    echo "$text"
     if [ $status -ne 0 ]; then
         updateStatus "addBadge('error.gif','''${NODENAME}: apt-get dist-upgrade >> ${ERRORS}''')"
         return $status
     fi
 
-    if grep -s '*** System restart required ***' <<< "$RESULTS"; then
+    if grep -s '*** System restart required ***' <<< "$text"; then
         updateStatus "addBadge('warning.gif','${NODENAME}: *** System restart required ***')"
         return $status
     fi
@@ -65,11 +49,10 @@ function latestUpdates()
     return 0
 }
 
+#----------------------------------------------------------------------------
 function main()
 {
-    [ $(ls -1 *.txt 2>/dev/null|wc -l) > 0 ] && rm *.txt
     [ $(ls -1 "$JOB_STATUS" 2>/dev/null|wc -l) > 0 ] && rm "$JOB_STATUS"
-    :> "$RESULTS"
     :> "$JOB_STATUS"
 
     local -i status=0
@@ -87,6 +70,20 @@ function main()
     return $status
 }
 
+#----------------------------------------------------------------------------
+function onexit()
+{
+    echo
+    echo
+    if [ -s "$JOB_STATUS" ]; then
+      echo '========================================================='
+      cat "$JOB_STATUS"
+      echo '========================================================='
+    fi
+    return 0
+}
+
+#----------------------------------------------------------------------------
 function removeLocks()
 {
     echo
@@ -105,29 +102,34 @@ function removeLocks()
     fi
 }
 
+#----------------------------------------------------------------------------
 function removeUneededPackages()
 {
     # remove old linux versions
     local -r packages=$(dpkg --get-selections | grep -e 'linux.*-4' | grep -v "$(uname -r | sed s/-generic//)" | awk '{ print  $1 }' | tr '\n' ' ')
+    local text=''
 
     local -i status=0
     if [ "$packages" ]; then
         echo
         echo 'removing OS versions no longer need'
-        sudo /usr/bin/apt-get remove -y $packages
-        sudo /usr/bin/apt-get purge -y $packages
+        text="$(sudo /usr/bin/apt-get remove -y "$packages"; sudo /usr/bin/apt-get purge -y "$packages")" ||:
+        echo "$text"
         status=1
     fi
 
-    if [ "$status" -ne 0 ] || (grep 'sudo apt autoremove' "$RESULTS"); then
+    if [ "$status" -ne 0 ] || (grep 'sudo apt autoremove' <<< "${text:-}"); then
         echo
         echo 'removing packages that OS says we no longer need'
-        sudo /usr/bin/apt-get autoremove -y
-        sudo /usr/bin/apt autoremove -y
+        text="$(sudo /usr/bin/apt-get autoremove -y)" ||:
+        echo "$text"
+        text="$(sudo /usr/bin/apt autoremove -y)" ||:
+        echo "$text"
     fi
     return 0
 }
 
+#----------------------------------------------------------------------------
 function report()
 {
     echo
@@ -138,12 +140,12 @@ function report()
         echo "checking $fl"
         [ -s "$fl" ] || continue
         cat "$fl"
-        cat "$fl" >> "$RESULTS"
         fl="$(basename "$fl")"
         updateStatus "addWarningBadge('''${NODENAME}: ${fl//-/ }''')"
     done
 }
 
+#----------------------------------------------------------------------------
 function showLinuxVersions()
 {
     echo
@@ -152,6 +154,7 @@ function showLinuxVersions()
     dpkg --get-selections | grep 'linux.*-4'
 }
 
+#----------------------------------------------------------------------------
 function showWhatNeedsDone()
 {
     local text
@@ -165,6 +168,7 @@ function showWhatNeedsDone()
     [ -z "$txt" ] || updateStatus "addBadge('yellow.gif','''${NODENAME}: ${txt}''')"
 }
 
+#----------------------------------------------------------------------------
 function updateStatus()
 {
     local text=${1:?}
@@ -174,6 +178,7 @@ function updateStatus()
 
 ##########################################################################################################
 
+set -o errtrace
 declare -r NODENAME=${1:-$(hostname -s)}
 shift
 
@@ -187,4 +192,4 @@ trap onexit INT
 trap onexit PIPE
 trap onexit EXIT
 
-main "$@"
+main "$@" 2>&1 | tee "$RESULTS"
