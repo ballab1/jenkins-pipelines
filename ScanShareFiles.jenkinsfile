@@ -11,10 +11,12 @@ pipeline {
         timestamps()
     }
     parameters{
-        string(name: 'SLAVE', defaultValue: 'ubuntu-s7', description: '') 
+        string(name: 'SLAVE', 
+               defaultValue: 'ubuntu-s4', 
+               description: '') 
         text(name: 'DIRECTORIES', 
-        defaultValue: '/mnt/WDMyCloud/Guest /mnt/WDMyCloud/Public /mnt/WDMyCloud/Seagate_Expansion_Drive',
-        description: 'directories location to scan')
+             defaultValue: '/mnt/Synology',
+             description: 'directories location to scan')
     }
 
      
