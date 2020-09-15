@@ -1,14 +1,41 @@
 @Library('jenkins-sharedlibs')_
 
-timestamps {
-    node('ubuntu-s2') {
+pipeline {
+    agent { label 'ubuntu-s2' }
+    options {
+        buildDiscarder(logRotator(numToKeepStr: '20'))
+        disableConcurrentBuilds()
+        disableResume()
+        timestamps()
+    }
+    parameters {
+        string(name: 'SOURCE', defaultValue: '/var/lib/docker-registry/docker/registry/v2/', description: 'source directory do backup')
+        string(name: 'DESTINATION', defaultValue: '/mnt/Registry', description: 'remote destination for backup')
+    } 
+    stages {
         stage ('Backup Registry') {
-            def src='/var/lib/docker-registry/docker/registry/v2/'
-//            def dst='bobb@nas.home:/volume1/Docker-Registry'
-            def dst='/mnt/Registry'
-//            sh "sudo rsync --compress --delete --devices --executability --force --no-group --no-owner --password-file='/home/bobb/.inf.nas.rsync' --prune-empty-dirs --recursive --safe-links --specials --stats '$src' '$dst' | tee rsync.log"
-            sh "sudo -u xxxxxx rsync --delete --devices --executability --force --no-group --no-owner --prune-empty-dirs --recursive --safe-links --specials --stats --times '$src' '$dst' | tee rsync.log"
-            archiveArtifacts artifacts: 'rsync.log' 
+            when {
+                expression { isMounted(params.DESTINATION) }
+            }
+            steps {
+//                                           --compress
+//                                           --password-file='/home/bobb/.inf.nas.rsync'
+                sh """sudo -u xxxxxx rsync --delete              \
+                                           --devices             \
+                                           --executability       \
+                                           --force               \
+                                           --no-group            \
+                                           --no-owner            \
+                                           --prune-empty-dirs    \
+                                           --recursive           \
+                                           --safe-links          \
+                                           --specials            \
+                                           --stats               \
+                                           --times               \
+                                           '${params.SOURCE}' '${params.DESTINATION}' | tee rsync.log
+                    """
+                archiveArtifacts artifacts: 'rsync.log' 
+            }
         }
     }
 }

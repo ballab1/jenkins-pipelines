@@ -13,6 +13,7 @@ See the usage method for more information and examples.
 # Imports: native Python
 import argparse
 import datetime
+import gc
 import hashlib
 import json
 import logging
@@ -41,11 +42,70 @@ Usage:
     return examples
 
 
-def zulu_timestamp(tstamp):
-    return datetime.datetime.fromtimestamp(tstamp).strftime("%Y-%m-%dT%I:%M:%S.%fZ")
+def fileInfo(file):
+    data = dict()
+
+    data['name'] = os.path.basename(file)
+    data['folder'] = os.path.abspath(os.path.dirname(file))
+
+#    data['name'] = os.path.basename(file).encode('ascii', 'xmlcharrefreplace')
+#    data['folder'] = os.path.abspath(os.path.dirname(file)).encode('ascii', 'xmlcharrefreplace')
+
+#    data['mount_point'] = os.path.dirname(file)
+#    data['mount_source'] = os.path.dirname(file)
+
+#    drive, path = os.path.splitdrive(file)
+#    drive, path = os.path.splittext(file)
+
+#    eval "stat_vals=( $(stat --format="['mount_point']='%m' ['time_of_birth']='%w'" "$1") )"
+#    local mount_source="$(grep -E '\s'"${stat_vals['mount_point']}"'\s' /etc/fstab | awk '{print $1}')"
+
+    if os.path.islink(file):
+        if os.path.exists(file):
+            data['symlink_reference'] = os.path.realpath(file)
+        else:
+            data['symlink_reference'] = None
+            data['link_reference'] = os.path.realpath(file)
+            return data
+
+    if os.path.isfile(file) and not os.path.islink(file):
+        data['sha256'] = hashlib.sha256(open(file, mode='rb').read()).hexdigest()
+
+    stat = os.stat(file)
+    data['size'] = stat.st_size
+#    data['blocks'] = stat.st_blocks
+#    data['block_size'] = stat.blksize
+
+#    data['xfr_size_hint'] = stat.st_size
+#    data['device_number'] = stat.st_size
+#    data['file_type'] = stat.st_rdev
+
+    data['uid'] = stat.st_uid
+#    data['uname'] = stat.st_size
+    data['gid'] = stat.st_gid
+#    data['gname'] = stat.st_size
+    data['access_rights'] = stat.st_mode
+#    data['access_rights_time'] = stat.st_size
+    data['inode'] = stat.st_ino
+    data['hard_links'] = stat.st_nlink
+#    data['raw_mode'] = stat.st_size
+#    data['device_type'] = stat.st_size
+#    data['file_created'] = stat.st_birthtime
+#    data['file_created_time'] = zulu_timestamp(stat.birthtime)
+    data['last_access'] = int(stat.st_atime)
+    data['last_access_time'] = zulu_timestamp(stat.st_atime)
+    data['last_modified'] = int(stat.st_mtime)
+    data['last_modified_time'] = zulu_timestamp(stat.st_mtime)
+    data['last_status_change'] = int(stat.st_ctime)
+    data['last_status_change_time'] = zulu_timestamp(stat.st_ctime)
+    return data
+
 
 def uuid1mc_insecure():
     return str(uuid1(random.getrandbits(48) | 0x010000000000))
+
+def zulu_timestamp(tstamp):
+    return datetime.datetime.fromtimestamp(tstamp).strftime("%Y-%m-%dT%I:%M:%S.%fZ")
 
 
 class KafkaProducer(object):
@@ -172,85 +232,27 @@ class ScanShareFiles:
 
         for file in args.dirs:
             for root, dirs, files in os.walk(file):
+                dir_count += 1
+                '{}.\t[ {}, {} ]\t{} :\t{} files'.format(prompt, dir_count, file_count, root, 10 )
                 for name in files:
                     file_count += 1
+                    filename = os.path.join(root, name)
                     try:
-                        self.fileData(os.path.join(root, name))
+                        self.saveFileData(filename)
                     except:
-                        print 'unable to create JSON for: {}'.format(os.path.join(root, name))
+                        print ('unable to create JSON for: {}'.format(filename))
+                    if (file_count %100) == 0:
+                        gc.collect()
                 for name in dirs:
                     dir_count += 1
-                    '{}.\t[ {}, {} ]\t{} :\t{} files'.format(prompt, dir_count, file_count, name, 10 )
 
 
-    def fileData(self, file):
-        data = dict()
-        data['name'] = os.path.basename(file)
-        data['folder'] = os.path.abspath(os.path.dirname(file))
 
-#        data['name'] = os.path.basename(file).encode('ascii', 'xmlcharrefreplace')
-#        data['folder'] = os.path.abspath(os.path.dirname(file)).encode('ascii', 'xmlcharrefreplace')
+    def saveFileData(self, filename):
 
-#        data['mount_point'] = os.path.dirname(file)
-#        data['mount_source'] = os.path.dirname(file)
-
-#        drive, path = os.path.splitdrive(file)
-#        drive, path = os.path.splittext(file)
-
-#        eval "stat_vals=( $(stat --format="['mount_point']='%m' ['time_of_birth']='%w'" "$1") )"
-#        local mount_source="$(grep -E '\s'"${stat_vals['mount_point']}"'\s' /etc/fstab | awk '{print $1}')"
-
-        if os.path.islink(file):
-            if os.path.exists(file):
-                data['symlink_reference'] = os.path.realpath(file)
-            else:
-                data['symlink_reference'] = None
-                data['link_reference'] = os.path.realpath(file)
-
-
-        if os.path.isfile(file) and not os.path.islink(file):
-            data['sha256'] = hashlib.sha256(open(file, mode='rb').read()).hexdigest()
-
-        stat = os.stat(file)
-        data['size'] = stat.st_size
-#        data['blocks'] = stat.st_blocks
-#        data['block_size'] = stat.blksize
-
-#        data['xfr_size_hint'] = stat.st_size
-#        data['device_number'] = stat.st_size
-#        data['file_type'] = stat.st_rdev
-
-        data['uid'] = stat.st_uid
-#        data['uname'] = stat.st_size
-        data['gid'] = stat.st_gid
-#        data['gname'] = stat.st_size
-        data['access_rights'] = stat.st_mode
-#        data['access_rights__HRF'] = stat.st_size
-        data['inode'] = stat.st_ino
-        data['hard_links'] = stat.st_nlink
-#        data['raw_mode'] = stat.st_size
-#        data['device_type'] = stat.st_size
-#        data['file_created'] = stat.st_birthtime
-#        data['file_created__HRF'] = zulu_timestamp(stat.birthtime)
-        data['last_access'] = int(stat.st_atime)
-        data['last_access__HRF'] = zulu_timestamp(stat.st_atime)
-        data['last_modified'] = int(stat.st_mtime)
-        data['last_modified__HRF'] = zulu_timestamp(stat.st_mtime)
-        data['last_status_change'] = int(stat.st_ctime)
-        data['last_status_change__HRF'] = zulu_timestamp(stat.st_ctime)
-
-
-        json_value = json.dumps(data,
-                                skipkeys=False,
-                                ensure_ascii=True,
-                                check_circular=True,
-                                allow_nan=False,
-                                cls=None,
-                                indent=None,
-                                separators=(',', ':'),
-                                encoding="utf-8",
-                                default=None,
-                                sort_keys=False)
+        data = fileInfo(filename)
+        json_value = json.dumps(data, ensure_ascii=False, indent=None, sort_keys=False)
+        del data
 
         if self.producer:
             self.producer(json_value)
@@ -259,10 +261,14 @@ class ScanShareFiles:
             f = self.opFile
             f.write(json_value)
             f.flush()
+        del json_value
+
+
 
 
 # ### ----- M A I N   D R I V E R   C O D E ----- ### #
 
 if __name__ == "__main__":
+    gc.enable()
     out = ScanShareFiles()
     sys.exit(out.main(sys.argv[1:]))

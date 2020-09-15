@@ -36,8 +36,8 @@ pipeline {
         always {
             kafkaBuildReporter()
         }
-        cleanup {
-            deleteDir()
-        }
+//        cleanup {
+//            deleteDir()
+//        }
     }
 }

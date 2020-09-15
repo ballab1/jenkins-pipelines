@@ -16,7 +16,7 @@ timestamps {
                 url: 'https://github.com/ballab1/DBMS-backup.git'
 
 
-            // get our DB bakup files
+            // get our DB backup files
             dbNames.each { dbName ->
                 unstash dbName
             }

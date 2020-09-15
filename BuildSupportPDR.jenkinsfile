@@ -57,12 +57,14 @@ pipeline {
                                                            url: 'https://github.com/ballab1/support']
                                                          ]
                         ])
-                sh """
+                ansiColor('xterm') {
+                   sh """
                       git submodule foreach 'dir="\$(basename "\$(pwd)")"; cd ..; git submodule update --init --recursive "\$dir" ||:'
                       git submodule foreach '[ \$(basename "\$(git config --get remote.origin.url)") = utilities ] || git checkout ${params.BRANCH}'
                       # git config submodule.utilities.update '!git fetch --all; git checkout --detach origin/${params.BRANCH}'
                       git submodule update --remote --recursive bin ||:
-                   """
+                      """
+                }
             }
         }    
         stage('Build') {
