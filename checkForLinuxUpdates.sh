@@ -5,9 +5,17 @@ function extractMsg()
 {
     local -r msg="${1:?}"
 
-    local -i start=$( echo "$msg" | grep -nP '^The following ' | cut -d ':' -f 1 )
-    local -i end=$( echo "$msg" | grep -nP '^After this' | cut -d ':' -f 1 )
-    if [ $end -gt $start ];then
+    local -a data
+
+    mapfile -t data < <( echo "$msg" | grep -nP '^The following ' | cut -d ':' -f 1 )
+    [ "${#data[*]}" -eq 0 ] && return 0
+    local -i start="${data[0]}"
+
+    mapfile -t data < <( echo "$msg" | grep -nP '^After this' | cut -d ':' -f 1 )
+    [ "${#data[*]}" -eq 0 ] && return 0
+    local -i end="${data[0]}"
+
+    if [ $end -gt $start ]; then
         echo "$msg" | sed -n "$start,$end p"
     fi
     return 0
