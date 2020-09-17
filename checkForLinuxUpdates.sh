@@ -179,9 +179,11 @@ function showWhatNeedsDone()
 #----------------------------------------------------------------------------
 function updateStatus()
 {
-    local text=${1:?}
+    local -r text=${1:?}
 
-    [ -s "$JOB_STATUS" ] || echo "manager.$1" >> "$JOB_STATUS"
+    [ -z "${text:-}" ] && return 0
+    [ -s "$JOB_STATUS" ] || (echo "manager.$text"; echo "currentBuild.result = 'UNSTABLE'") > "$JOB_STATUS"
+    return 0
 }
 
 ##########################################################################################################
