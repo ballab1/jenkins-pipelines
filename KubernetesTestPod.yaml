@@ -9,7 +9,9 @@ spec:
   ttlSecondsAfterFinished: 120
   containers:
   - name: jnlp
-    image: ubuntu-s2:5000/thirdparty/jnlp-slave:alpine
-    args: [ '-url', '\${JENKINS_URL}', '\$(JENKINS_SECRET)', '\$(JENKINS_NAME)' ]
-    tty: true
+    image: ubuntu-s2:5000/thirdparty/jenkins/inbound-agent:4.3-9-alpine
+    args: [ '-url', '\${JENKINS_URL}', '\$(JENKINS_SECRET)', '\$(JENKINS_NAME)', '\${JENKINS_WEB_SOCKET}' ]
+    volumeMounts:
+    - name: workspace-volume
+      mountPath: /home/jenkins
   restartPolicy: Never
