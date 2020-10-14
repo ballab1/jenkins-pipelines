@@ -9,9 +9,20 @@ spec:
   ttlSecondsAfterFinished: 120
   containers:
   - name: jnlp
-    image: ubuntu-s2:5000/thirdparty/jenkins/inbound-agent:4.3-9-alpine
-    args: [ '-url', '\${JENKINS_URL}', '\$(JENKINS_SECRET)', '\$(JENKINS_NAME)', '\${JENKINS_WEB_SOCKET}' ]
+    image: s2.ubuntu.home:5000/thirdparty/jenkins/inbound-agent:4.3-9-alpine
+    imagePullPolicy: Always
     volumeMounts:
     - name: workspace-volume
       mountPath: /home/jenkins
+    - name: ca-pemstore
+      readOnly: true
+      mountPath: /etc/ssl/certs/soho-ball.crt
+      subPath: soho-ball.crt
+  volumes:
+  - name: ca-pemstore
+    configMap:
+      name: ca-pemstore
+      items:
+      - key: soho-ball.pem
+        path: soho-ball.crt
   restartPolicy: Never

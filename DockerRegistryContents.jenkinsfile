@@ -14,10 +14,10 @@ pipeline {
         stage('Generate JSON') {
             agent {
                 docker {
-                    image 'ubuntu-s2.home:5000/alpine/build_container:latest'
+                    image 's2.ubuntu.home:5000/alpine/build_container:latest'
                     label 'docker-host'
                     args "--volume '${WORKSPACE}:/opt' --entrypoint='' --dns=10.3.1.1"
-                    registryUrl 'http://ubuntu-s2.home:5000/'
+                    registryUrl 'http://s2.ubuntu.home:5000/'
                 }
             }
             steps {
@@ -34,10 +34,10 @@ pipeline {
         stage('Generate Report') {
             agent {
                 docker {
-                    image 'ubuntu-s2.home:5000/thirdparty/groovy:2.6-jre-alpine'
+                    image 's2.ubuntu.home:5000/thirdparty/groovy:2.6-jre-alpine'
                     label 'docker-host'
                     args "--volume '${WORKSPACE}:/home/groovy/scripts'"
-                    registryUrl 'http://ubuntu-s2.home:5000/'
+                    registryUrl 'http://s2.ubuntu.home:5000/'
                 }
             }
             steps {

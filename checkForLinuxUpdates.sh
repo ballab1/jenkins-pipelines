@@ -45,6 +45,7 @@ function latestUpdates()
     fi
 
     if grep -s '*** System restart required ***' <<< "$text"; then
+        :> "$JOB_STATUS"
         updateStatus "addBadge('warning.gif','${NODENAME}: *** System restart required ***')"
         return $status
     fi
@@ -60,7 +61,7 @@ function latestUpdates()
 #----------------------------------------------------------------------------
 function main()
 {
-    [ $(ls -1 "$JOB_STATUS" 2>/dev/null|wc -l) > 0 ] && rm "$JOB_STATUS"
+    [ -e "$JOB_STATUS" ] && sudo rm "$JOB_STATUS"
     :> "$JOB_STATUS"
 
     local -i status=0
@@ -114,14 +115,14 @@ function removeLocks()
 function removeUneededPackages()
 {
     # remove old linux versions
-    local -r packages=$(dpkg --get-selections | grep -e 'linux.*-4' | grep -v "$(uname -r | sed s/-generic//)" | awk '{ print  $1 }' | tr '\n' ' ')
+    local -r packages=$(dpkg --get-selections | grep -E '^linux-(\w+-){1,2}[4-9]\.' | grep -v "$(uname -r | sed -e 's|-generic||')" | awk '{ print  $1 }' | tr '\n' ' ')
     local text=''
 
     local -i status=0
     if [ "$packages" ]; then
         echo
         echo 'removing OS versions no longer need'
-        text="$(sudo /usr/bin/apt-get remove -y "$packages"; sudo /usr/bin/apt-get purge -y "$packages")" ||:
+        text="$(sudo /usr/bin/apt-get remove -y $packages; sudo /usr/bin/apt-get purge -y $packages)" ||:
         echo "$text"
         status=1
     fi
@@ -147,6 +148,7 @@ function report()
     for fl in "${checks[@]}" ; do
         echo "checking $fl"
         [ -s "$fl" ] || continue
+        :> "$JOB_STATUS"
         cat "$fl"
         fl="$(basename "$fl")"
         updateStatus "addWarningBadge('''${NODENAME}: ${fl//-/ }''')"
@@ -159,12 +161,16 @@ function showLinuxVersions()
     echo
     echo
     echo 'report our linux installations'
-    dpkg --get-selections | grep 'linux.*-4'
+    dpkg --get-selections | grep -E '^linux-(\w+-){1,2}[4-9]\.' | grep "$(uname -r | sed -e 's|-generic||')"
 }
 
 #----------------------------------------------------------------------------
 function showWhatNeedsDone()
 {
+    # i686 systems are currently on latest release. No more upgrades!
+    [ "$(uname -m)" = 'i686' ] && return
+
+
     local text
     echo
     echo 'show what needs done'

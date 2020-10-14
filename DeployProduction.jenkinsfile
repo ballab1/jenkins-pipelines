@@ -2,7 +2,7 @@ node('ubuntu-s3') {
     timestamps {
         stage ('Perform Update') {
             ws {
-                sh "DOCKER_REGISTRY='ubuntu-s2.home:5000/' CONTAINER_TAG='latest' docker-compose -f ${PROD_DIR}/docker-compose.yml pull"
+                sh "DOCKER_REGISTRY='s2.ubuntu.home:5000/' CONTAINER_TAG='latest' docker-compose -f ${PROD_DIR}/docker-compose.yml pull"
             }
         }
         stage ('Restart Production') {
