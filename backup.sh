@@ -5,10 +5,11 @@ source /home/bobb/.bin/trap.bashlib
 function main() {
 
     local -r target="${1:?}"
+    :> "$JOB_STATUS"
 
     local -r filename="$(basename "$target")"
-    if [ -e "$filename" ]; then
-        [ "$(sha256sum "$target")" = "$(sha256sum "${BACKUP_DIR}/$filename")" ] && return 0
+    if [ -e "${BACKUP_DIR}/$filename" ]; then
+        [ "$(sha256sum "$target" | cut -d ' ' -f 1)" = "$(sha256sum "${BACKUP_DIR}/$filename" | cut -d ' ' -f 1)" ] && return 0
     fi
 
     local -r base="${filename%.*}" 
@@ -56,8 +57,8 @@ function updateStatus()
 
 set -o errtrace
 
-declare -r MAX_FILES=10
-declare -r BACKUP_DIR=/home/bobb/src
+declare -ri MAX_FILES=${MAX_FILES:-10}
+declare -r BACKUP_DIR="${BACKUP_DIR:-/home/bobb/src}"
 
 export TERM=linux
 declare -r NODENAME=$(hostname -f)

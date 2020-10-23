@@ -1,0 +1,22 @@
+@Library('jenkins-sharedlibs')_
+
+pipeline {
+    agent { label 'ubuntu-s3' }
+    options {
+        buildDiscarder(logRotator(numToKeepStr: '20'))
+        disableConcurrentBuilds()
+        disableResume()
+        timestamps()
+    }
+    stages {
+        stage ('Backup NagiosConfig') {
+            steps {
+              sh 'cp /home/bobb/production/workspace.production/nagios/config/NagiosConfig.tgz /home/bobb/production/nagios/'
+              sh "./backup.sh '/home/bobb/production/nagios/NagiosConfig.tgz'" 
+              script {
+                  load './status.groovy'
+              } 
+           }
+        }
+    }
+}

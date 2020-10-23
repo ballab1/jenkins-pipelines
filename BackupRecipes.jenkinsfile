@@ -10,6 +10,9 @@ processInParallel (
     action: { tarfile ->
         sh "cd /home/bobb/production/workspace.production/www/recipes; tar czf '${WORKSPACE}/${tarfile}' * ||:"
         sh "./backup.sh '${WORKSPACE}/${tarfile}'"
+        script {
+            load './status.groovy'
+        } 
         archiveArtifacts tarfile
     }
 )

@@ -11,6 +11,9 @@ processInParallel (
         def tarfile = nodeName + '.cfg.tgz'
         sh "sudo tar -cvzf ${tarfile} -T ./tarfiles.lst ||:"
         sh "./backup.sh '${WORKSPACE}/${tarfile}'"
+        script {
+            load './status.groovy'
+        } 
         archiveArtifacts tarfile
     }
 )
