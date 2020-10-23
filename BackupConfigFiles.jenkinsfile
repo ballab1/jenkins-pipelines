@@ -9,8 +9,8 @@ processInParallel (
     },
     action: { nodeName ->
         def tarfile = nodeName + '.cfg.tgz'
-        sh "tar -cvzf ${tarfile} -T ./tarfiles.lst ||:"
-        sh "sudo cp ${tarfile} /home/bobb/src" 
+        sh "sudo tar -cvzf ${tarfile} -T ./tarfiles.lst ||:"
+        sh "./backup.sh '${WORKSPACE}/${tarfile}'"
         archiveArtifacts tarfile
     }
 )

@@ -9,7 +9,7 @@ processInParallel (
     },
     action: { tarfile ->
         sh "cd /home/bobb/production/workspace.production/www/recipes; tar czf '${WORKSPACE}/${tarfile}' * ||:"
-        sh "cp '${WORKSPACE}/${tarfile}' /home/bobb/src/"
+        sh "./backup.sh '${WORKSPACE}/${tarfile}'"
         archiveArtifacts tarfile
     }
 )
