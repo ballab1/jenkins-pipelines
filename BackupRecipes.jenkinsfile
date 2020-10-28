@@ -1,18 +1,23 @@
-
 @Library('jenkins-sharedlibs')_
 
-processInParallel (
-    agent: 'ubuntu-s3',
-    items: [ 'recipes.tgz' ],
-    process: { tarfile, body -> 
-        fixedNodeStep(tarfile, body)
-    },
-    action: { tarfile ->
-        sh "cd /home/bobb/production/workspace.production/www/recipes; tar czf '${WORKSPACE}/${tarfile}' * ||:"
-        sh "./backup.sh '${WORKSPACE}/${tarfile}'"
-        script {
-            load './status.groovy'
-        } 
-        archiveArtifacts tarfile
+pipeline {
+    agent { label 'ubuntu-s3' }
+    options {
+        buildDiscarder(logRotator(numToKeepStr: '20'))
+        disableConcurrentBuilds()
+        disableResume()
+        timestamps()
     }
-)
+    stages {
+        stage ('Backup Recipes') {
+            steps {
+                sh "cd /home/bobb/production/workspace.production/www/recipes; tar czf '${WORKSPACE}/recipes.tgz' * ||:"
+                sh "./backup.sh '${WORKSPACE}/recipes.tgz'"
+                script {
+                    load './status.groovy'
+                }
+                archiveArtifacts 'recipes.tgz'
+           }
+        }
+    }
+}
