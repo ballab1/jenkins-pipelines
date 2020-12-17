@@ -102,6 +102,11 @@ MODES = { stat.S_IFSOCK : 'socket',
 BLKSIZE = 131072
 
 #-----------------------------------------------------------------------------
+def dirInfo(name, path, data):
+    data['name'] = to_unicode_or_bust(name)
+    data['folder'] = to_unicode_or_bust(path)
+
+#-----------------------------------------------------------------------------
 def fileInfo(name, path, data):
     data['name'] = to_unicode_or_bust(name)
     data['folder'] = to_unicode_or_bust(path)
@@ -507,12 +512,21 @@ class ScanShareFiles:
 
 
     def produceData(self, basedir):
+        shas = dict()
         data = dict()
         for root, dirs, files in os.walk(basedir):
+            sha = hashlib.sha256()
             for name in files:
                 self.file_count += 1
                 fileInfo(name, root, data)
+                sha.update(data['sha256'])
                 self.producer.produce(data)
+            for name in dirs:            
+                self.dir_count += 1
+                sha.update(data['sha256'])
+                dirInfo(name, root, shas)
+                self.producer.produce(data)
+            shas[root] = sha.hexdigest()
         print ('   detected {} files on {}'.format(self.file_count, basedir))
 
 

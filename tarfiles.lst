@@ -1,9 +1,6 @@
-/home/bobb/.bash_aliases
 /home/bobb/.bash_logout
-/home/bobb/.bashrc
-/home/bobb/.gitconfig
 /home/bobb/.crypt-key
-/home/bobb/.tmux.conf
+/home/bobb/.ssh
 /etc/apt
 /etc/bash.bashrc
 /etc/bash_completion
@@ -20,6 +17,7 @@
 /etc/init.d
 /etc/insserv.conf
 /etc/network
+/etc/netplan
 /etc/NetworkManager
 /etc/ntp.conf
 /etc/passwd
@@ -40,3 +38,4 @@
 /etc/samba
 /etc/sudoers
 /etc/sudoers.d
+/lib/systemd/system/*.service

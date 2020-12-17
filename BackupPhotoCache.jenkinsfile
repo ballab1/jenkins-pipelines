@@ -8,6 +8,13 @@ processInParallel (
         fixedNodeStep(tardir, body)
     },
     action: { dir ->
+        sh returnStatus: true, script: "./checkMounted.sh /mnt/Registry"
+        script {
+            if (fileExists('./status.groovy')) {
+                load './status.groovy'
+            } 
+        } 
+
         sh "tar czf '${WORKSPACE}/${dir}_cache.tgz' --directory /home/bobb/production/workspace.production/${dir}/cache ."
         sh "./backup.sh '${WORKSPACE}/${dir}_cache.tgz'"
         archiveArtifacts dir+'_cache.tgz'

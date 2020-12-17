@@ -9,12 +9,24 @@ pipeline {
         timestamps()
     }
     stages {
+        stage ('Check mount') {
+            steps {
+                sh returnStatus: true, script: "./checkMounted.sh /mnt/Registry"
+                script {
+                    if (fileExists('./status.groovy')) {
+                        load './status.groovy'
+                    } 
+                } 
+            }
+        }
         stage ('Backup Recipes') {
             steps {
                 sh "cd /home/bobb/production/workspace.production/www/recipes; tar czf '${WORKSPACE}/recipes.tgz' * ||:"
                 sh "./backup.sh '${WORKSPACE}/recipes.tgz'"
                 script {
-                    load './status.groovy'
+                    if (fileExists('./status.groovy')) {
+                        load './status.groovy'
+                    } 
                 }
                 archiveArtifacts 'recipes.tgz'
            }

@@ -9,12 +9,24 @@ pipeline {
         timestamps()
     }
     stages {
+        stage ('Check mount') {
+            steps {
+                sh returnStatus: true, script: "./checkMounted.sh /mnt/Registry"
+                script {
+                    if (fileExists('./status.groovy')) {
+                        load './status.groovy'
+                    } 
+                } 
+            }
+        }
         stage ('Backup ElasticSearch') {
             steps {
               sh "cd /home/bobb/elk-deploy/workspace.elk-deploy/elasticsearch/data; tar czf '${WORKSPACE}/ElasticSearch.tgz' * ||:"
               sh "./backup.sh '${WORKSPACE}/ElasticSearch.tgz'" 
               script {
-                  load './status.groovy'
+                 if (fileExists('./status.groovy')) {
+                     load './status.groovy'
+                 } 
               } 
            }
         }

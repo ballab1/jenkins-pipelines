@@ -4,9 +4,12 @@
 #----------------------------------------------------------------------------
 function main()
 {
+   :> "$JOB_STATUS"
+
+    sudo mount -a
     local mount="$(mount | grep "$MOUNTPATH" | cut -d ' ' -f 3)"
     if [ "$mount" = "$MOUNTPATH" ]; then
-      (timeout --signal=KILL 2 ls -d "$MOUNTPATH") && return 0
+      (timeout --signal=KILL 10 ls -d "$MOUNTPATH") && return 0
        updateStatus 'STALE MOUNT detected'
     else
        updateStatus "${MOUNTPATH} is not mounted" 
@@ -33,8 +36,9 @@ function updateStatus()
     local -r text=${1:?}
 
     [ -z "${text:-}" ] && return 0
-    [ -s "$JOB_STATUS" ] || (echo "manager.$text"; echo "currentBuild.result = 'FAILED'") > "$JOB_STATUS"
-    return 0
+    [ -s "$JOB_STATUS" ] || return 0
+
+    echo "manager.$text"; echo "currentBuild.result = 'FAILED'" > "$JOB_STATUS"
 }
 
 ##########################################################################################################

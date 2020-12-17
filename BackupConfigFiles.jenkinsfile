@@ -8,11 +8,20 @@ processInParallel (
         nodeStep(nodeName, body)
     },
     action: { nodeName ->
+        sh returnStatus: true, script: "./checkMounted.sh /mnt/Registry"
+        script {
+            if (fileExists('./status.groovy')) {
+                load './status.groovy'
+            } 
+        } 
+
         def tarfile = nodeName + '.cfg.tgz'
         sh "sudo tar -cvzf ${tarfile} -T ./tarfiles.lst ||:"
         sh "./backup.sh '${WORKSPACE}/${tarfile}'"
         script {
-            load './status.groovy'
+            if (fileExists('./status.groovy')) {
+                load './status.groovy'
+            } 
         } 
         archiveArtifacts tarfile
     }
