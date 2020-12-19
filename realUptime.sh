@@ -1,4 +1,5 @@
-#!/bin/bash
+#!/bin/bash -x
+
 #=============================================================================== 
 #
 #  realUptime:  calculate 'uptime' based on timestamp of /proc/1
@@ -7,43 +8,27 @@
 #=============================================================================== 
 function procOneUptime()
 {
-    expr $(date +%s) - $(stat -c %Z /proc/1) 
-}
+    local -i seconds="$(( $(date +%s) - $(stat -c %Z /proc/1) ))"
+    local -r days=$(( seconds/86400 ))
+    seconds=$(( seconds - (days*86400) ))
 
-#=============================================================================== 
-function realUptime()
-{
-    local up=$( uptime )
-    local ts="${up:1:12}"
+    local -r hours=$(( seconds/3600 ))
+    seconds=$(( seconds - (hours*3600) ))
 
-    # remove content befor 1st two commas
-    up="${up#*,}"
-    up="${up#*,}"
+    local -r minutes=$(( seconds/60 ))
+#    seconds=$(( seconds - (minutes*60) ))
 
-    # reconstruct uptime string with value calculated from '/proc/1'
-    printf " %s %s, %s" "$ts" "$( secondsToDaysHoursMinutesSeconds $( procOneUptime ) )" "$up"
-}
+#    echo -n "${days} days, ${hours}:${minutes}:${seconds}"
+    echo -n "${days} days, ${hours}:${minutes}"
 
-#=============================================================================== 
-function secondsToDaysHoursMinutesSeconds()
-{
-    local seconds=$1
-    local days=$(($seconds/86400))
-    seconds=$(($seconds-($days*86400) ))
-
-    local hours=$(($seconds/3600))
-    seconds=$((seconds-($hours*3600) ))
-
-    local minutes=$(($seconds/60))
-    seconds=$(( $seconds-($minutes*60) ))
-
-    echo -n "${days} days, ${hours}:${minutes}:${seconds}"
 }
 
 #=============================================================================== 
 
-if [ $( grep -c 'docker' /proc/1/cgroup ) -eq 0 ]; then
-    uptime
+if [ $( grep -c 'docker' /proc/1/cgroup ) -ne 0 ]; then
+
+    uptime | sed -E -e "s|[0-9]+\s+day,\s+[0-9]+:[0-9]+,|$( procOneUptime ),|"
+
 else
-    realUptime
+    uptime
 fi    

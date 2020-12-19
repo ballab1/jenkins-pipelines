@@ -18,7 +18,7 @@ pipeline {
                                   nodeStep(nodeName, body)
                               }, 
                               { nodeName ->
-                                  sh "./realUptime,sh > ${nodeName}.txt"
+                                  sh "./realUptime.sh > ${nodeName}.txt"
                                   archiveArtifacts "${nodeName}.txt"
                                   stash includes: "${nodeName}.txt", name: nodeName
                                   script {
