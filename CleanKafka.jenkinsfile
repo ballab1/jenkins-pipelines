@@ -1,0 +1,52 @@
+@Library('jenkins-sharedlibs')_
+
+/////////////////////////////////////////////////////////////////////////////////////////////////
+
+pipeline {
+  agent any
+  options {
+    buildDiscarder(logRotator(numToKeepStr: '20'))
+    disableConcurrentBuilds()
+    disableResume()
+    timestamps()
+  }
+  parameters {
+    string(name: 'TARGET_DIR', defaultValue: '/home/bobb/deploy-kafka/workspace.deploy-kafka/broker/logs/', description: 'target directory for config files')
+  }
+  triggers {
+    cron('H * * * *')
+  }
+  stages {
+    stage ('stop all') {
+      failFast true
+      parallel {
+        stage ('ubuntu-s3') {
+          agent { label 'ubuntu-s3' }
+          steps {
+            sh "find ${params.TARGET_DIR} -mindepth 1 -maxdepth 1 -name '*log*'  ! -mtime 10 -delete"
+          }
+        } 
+        stage ('ubuntu-s4') {
+          agent { label 'ubuntu-s4' }
+          steps {
+            sh "find ${params.TARGET_DIR} -mindepth 1 -maxdepth 1 -name '*log*'  ! -mtime 10 -delete"
+          }
+        } 
+        stage ('ubuntu-s8') {
+          agent { label 'ubuntu-s8' }
+          steps {
+            sh "find ${params.TARGET_DIR} -mindepth 1 -maxdepth 1 -name '*log*'  ! -mtime 10 -delete"
+          }
+        }
+      }
+    }
+  }
+  post {
+    always {
+        kafkaBuildReporter()
+    }
+    cleanup {
+        deleteDir()
+    }
+  }
+} 
