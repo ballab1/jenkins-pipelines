@@ -15,8 +15,8 @@ processInParallel (
             } 
         } 
 
-        def tarfile = nodeName + '.cfg.tgz'
-        sh "sudo tar -cvzf ${tarfile} -T ./tarfiles.lst ||:"
+        def tarfile = nodeName + '.cfg.tar'
+        sh "sudo tar -cvf ${tarfile} -T ./tarfiles.lst ||:"
         sh "./backup.sh '${WORKSPACE}/${tarfile}'"
         script {
             if (fileExists('./status.groovy')) {
