@@ -5,7 +5,7 @@
 pipeline {
     agent { label 'ubuntu-s7' }
     options {
-        buildDiscarder(logRotator(numToKeepStr: '20'))
+        buildDiscarder(logRotator(numToKeepStr: '100'))
         disableConcurrentBuilds()
         disableResume()
         timestamps()
@@ -38,8 +38,8 @@ pipeline {
         always {
             kafkaBuildReporter()
         }
-//        cleanup {
-//            deleteDir()
-//        }
+        cleanup {
+            deleteDir()
+        }
     }
 }
