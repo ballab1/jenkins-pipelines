@@ -38,6 +38,7 @@ function latestUpdates()
     fi
 
     text="$(sudo /usr/bin/apt-get dist-upgrade -y 2>"$ERRORS")" && status=$? || status=$?
+#    text="$(sudo /usr/bin/apt autoremove -y 2>"$ERRORS")" && status=$? || status=$?
     echo "$text"
     if [ $status -ne 0 ]; then
         updateStatus "addBadge('error.gif','''${NODENAME}: apt-get dist-upgrade >> ${ERRORS}''')"
