@@ -15,7 +15,7 @@ pipeline {
                defaultValue: 'ubuntu-s4', 
                description: '') 
         text(name: 'DIRECTORIES', 
-             defaultValue: '/mnt/Synology',
+             defaultValue: '/mnt',
              description: 'directories location to scan')
     }
 

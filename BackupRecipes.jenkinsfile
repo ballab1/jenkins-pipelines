@@ -31,5 +31,17 @@ pipeline {
                 archiveArtifacts 'recipes.tgz'
            }
         }
+        stage ('Backup Versions') {
+            steps {
+                sh "cd /home/bobb/production/workspace.production/www/versions; tar czf '${WORKSPACE}/versions.tgz' * ||:"
+                sh "./backup.sh '${WORKSPACE}/versions.tgz'"
+                script {
+                    if (fileExists('./status.groovy')) {
+                        load './status.groovy'
+                    } 
+                }
+                archiveArtifacts 'versions.tgz'
+           }
+        }
     }
 }

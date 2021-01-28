@@ -375,13 +375,7 @@ class ScanShareFiles:
 
         for dir in args.dirs:
             print('dirs:  '+dir)
-#            self.convert(dir)
             self.produceData(dir)
-#            self.fixDirs(dir)
-#            self.listDirs(dir)
-#            self.listFiles(dir)
-#            self.showDirs(dir)
-#            self.testNames(dir)
         self.producer.close()
 
 
@@ -392,23 +386,30 @@ class ScanShareFiles:
         size = 0
 
         for name in os.listdir(basedir):
-            file = os.path.join(basedir, name)
+            if name == '#recycle':
+                continue
 
-            if os.path.isdir(file):
-                dir_count += 1
-                self.produceData(file)
+            try:
+                file = os.path.join(basedir, name)
 
-            else:
-                file_count += 1
-                fileInfo(file, self.data)
-                self.producer.produce(self.data)
+                if os.path.isdir(file):
+                    dir_count += 1
+                    self.produceData(file)
 
-            if 'size' in self.data.keys():
-                size += self.data['size']
+                else:
+                    file_count += 1
+                    fileInfo(file, self.data)
+                    self.producer.produce(self.data)
 
-            if 'sha256' in self.data.keys():
-                sha.update(self.data['sha256'])
+                if 'size' in self.data.keys():
+                    size += self.data['size']
 
+                if 'sha256' in self.data.keys():
+                    sha.update(self.data['sha256'])
+
+            except:
+                continue
+            
 
         fileInfo(basedir, self.data)
         self.data['size'] = size
