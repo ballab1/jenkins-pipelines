@@ -33,9 +33,16 @@ timestamps {
                     println status
                     manager.addBadge('db_in.gif', status)
                 }
+
                 sh 'git add --all'
                 sh 'git commit --message="mysql DB updates"'
-                sh 'git push --verbose --set-upstream origin master'
+//                sh 'git branch --set-upstream-to=master'
+
+                withCredentials([usernameColonPassword(credentialsId: '935a7b57-da74-45f7-9119-5a0529afb8ae',
+                                                       variable: 'CREDS')
+                                ]) {
+                    sh("git push --verbose --repo=https://$CREDS@github.com/ballab1/DBMS-backup.git origin HEAD:master")
+                }
                 
                 echo 'Setting build to "UNSTABLE" to indicate changes were detected.'
                 manager.buildUnstable()
