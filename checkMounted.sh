@@ -1,6 +1,5 @@
 #!/bin/bash
 
-
 #----------------------------------------------------------------------------
 function main()
 {
@@ -9,7 +8,7 @@ function main()
     sudo mount -a
     local mount="$(mount | grep "$MOUNTPATH" | cut -d ' ' -f 3)"
     if [ "$mount" = "$MOUNTPATH" ]; then
-      (timeout --signal=KILL 10 ls -d "$MOUNTPATH") && return 0
+       (timeout --signal=KILL 10 ls -d "$MOUNTPATH") && exit 0
        updateStatus 'STALE MOUNT detected'
     else
        updateStatus "${MOUNTPATH} is not mounted" 
