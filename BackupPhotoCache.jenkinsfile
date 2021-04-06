@@ -9,13 +9,11 @@ processInParallel (
     },
     action: { dir ->
         sh returnStatus: true, script: "./checkMounted.sh /mnt/Registry"
-        script {
-            if (fileExists('./status.groovy')) {
-                load './status.groovy'
-            } 
-        } 
+        loadIfExists './status.groovy'
 
-        sh "tar czf '${WORKSPACE}/${dir}_cache.tgz' --directory /home/bobb/production/workspace.production/${dir}/cache ."
+        dir ('/home/bobb/production/workspace.production/${dir}/cache') {
+            sh "tar czf '${WORKSPACE}/${dir}_cache.tgz' ."
+         }
         sh "./backup.sh '${WORKSPACE}/${dir}_cache.tgz'"
         archiveArtifacts dir+'_cache.tgz'
     }

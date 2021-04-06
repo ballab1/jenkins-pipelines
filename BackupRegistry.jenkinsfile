@@ -16,11 +16,7 @@ pipeline {
         stage ('Check mount') {
             steps {
                 sh returnStatus: true, script: "./checkMounted.sh " + params.DESTINATION
-                script {
-                    if (fileExists('./status.groovy')) {
-                        load './status.groovy'
-                    } 
-                } 
+                loadIfExists './status.groovy'
             }
         }
         stage ('Backup Registry') {

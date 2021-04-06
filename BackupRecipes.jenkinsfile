@@ -12,34 +12,26 @@ pipeline {
         stage ('Check mount') {
             steps {
                 sh returnStatus: true, script: "./checkMounted.sh /mnt/Registry"
-                script {
-                    if (fileExists('./status.groovy')) {
-                        load './status.groovy'
-                    } 
-                } 
+                loadIfExists './status.groovy'
             }
         }
         stage ('Backup Recipes') {
             steps {
-                sh "cd /home/bobb/production/workspace.production/www/recipes; tar czf '${WORKSPACE}/recipes.tgz' * ||:"
+                dir ('/home/bobb/production/workspace.production/www/recipes') {
+                   sh "tar czf '${WORKSPACE}/recipes.tgz' * ||:"
+                } 
                 sh "./backup.sh '${WORKSPACE}/recipes.tgz'"
-                script {
-                    if (fileExists('./status.groovy')) {
-                        load './status.groovy'
-                    } 
-                }
+                loadIfExists './status.groovy'
                 archiveArtifacts 'recipes.tgz'
            }
         }
         stage ('Backup Versions') {
             steps {
-                sh "cd /home/bobb/production/workspace.production/www/versions; tar czf '${WORKSPACE}/versions.tgz' * ||:"
+                dir ('/home/bobb/production/workspace.production/www/versions') {
+                   sh "tar czf '${WORKSPACE}/versions.tgz' * ||:"
+                } 
                 sh "./backup.sh '${WORKSPACE}/versions.tgz'"
-                script {
-                    if (fileExists('./status.groovy')) {
-                        load './status.groovy'
-                    } 
-                }
+                loadIfExists './status.groovy'
                 archiveArtifacts 'versions.tgz'
            }
         }

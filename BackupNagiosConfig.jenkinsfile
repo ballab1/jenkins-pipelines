@@ -12,22 +12,14 @@ pipeline {
         stage ('Check mount') {
             steps {
                 sh returnStatus: true, script: "./checkMounted.sh /mnt/Registry"
-                script {
-                    if (fileExists('./status.groovy')) {
-                        load './status.groovy'
-                    } 
-                } 
+                loadIfExists './status.groovy'
             }
         }
         stage ('Backup NagiosConfig') {
             steps {
               sh 'cp /home/bobb/production/workspace.production/nagios/config/NagiosConfig.tgz /home/bobb/production/nagios/'
               sh "./backup.sh '/home/bobb/production/nagios/NagiosConfig.tgz'" 
-              script {
-                 if (fileExists('./status.groovy')) {
-                    load './status.groovy'
-                 } 
-              } 
+              loadIfExists './status.groovy'
            }
         }
     }

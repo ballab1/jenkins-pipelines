@@ -10,9 +10,7 @@ processInParallel (
         timeout(90) {
             sh './checkForLinuxUpdates.sh ' + nodeName
         }
-        script {
-            load './status.groovy'
-        }
+        loadIfExists './status.groovy'
         archiveArtifacts allowEmptyArchive: true, artifacts: "*.txt"
     }
 )
