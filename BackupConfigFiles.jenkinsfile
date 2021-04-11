@@ -1,18 +1,69 @@
 
 @Library('jenkins-sharedlibs')_
 
-processInParallel (
-    agent: 'master',
-    items: activeNodes(),
-    process: { nodeName, body -> 
-        nodeStep(nodeName, body)
-    },
-    action: { nodeName ->
-        sh './checkMounted.sh /mnt/ubuntu'
-        loadIfExists './status.groovy'
-
-        sh "./backup.sh '${nodeName}'"
-        loadIfExists './status.groovy'
-        archiveArtifacts allowEmptyArchive: true, artifacts: '*.log,*.tgz'
+def pipelineProcess() {
+    return { nodeName, body ->
+             nodeStep(nodeName, body)
     }
-)
+}
+
+def pipelineAction()  {
+    return { nodeName ->
+	sh './checkMounted.sh /mnt/ubuntu'
+	loadIfExists './status.groovy'
+	
+	sh "./backup-cfg.sh '${nodeName}'"
+	loadIfExists './status.groovy'
+	stash allowEmpty: true, includes: "${nodeName}.log", name: nodeName
+	archiveArtifacts allowEmptyArchive: true, artifacts: "${nodeName}*" 
+    }
+}
+
+
+pipeline {
+    agent { label 'master' }
+    options {
+        buildDiscarder(logRotator(numToKeepStr: '20'))
+        disableConcurrentBuilds()
+        disableResume()
+        timestamps()
+    } 
+    stages {
+        stage ('Process Items') {
+            steps {
+                parallelSteps(activeNodes(),
+                              pipelineProcess(),
+                              pipelineAction() )
+            }
+        }
+        stage('Generate Summary') {
+             steps {
+                 echo 'generate summary'
+                 script {
+                     def summary = ''
+                     def nodes = activeNodes()
+                     for (int i=0; i<nodes.size(); ++i) {
+                         def nodeName = nodes[i];
+                         unstash name: nodeName
+                         if (fileExists("${nodeName}.log")) {
+                             summary += readFile("${nodeName}.log")   
+                         }
+                         else {
+                             echo 'no stash file located'
+                         }
+                     }
+                     writeFile file: 'overview.log', text: summary
+                 }
+                 archiveArtifacts allowEmptyArchive: true, artifacts: '*.log'
+             }
+        }
+    }
+    post {
+        always {
+            kafkaBuildReporter()
+        }
+        cleanup {
+            deleteDir()
+        }
+    }
+} 

@@ -17,9 +17,7 @@ pipeline {
         }
         stage ('Backup Recipes') {
             steps {
-                dir ('/home/bobb/production/workspace.production/www/recipes') {
-                   sh "tar czf '${WORKSPACE}/recipes.tgz' * ||:"
-                } 
+                sh "tar czf '${WORKSPACE}/recipes.tgz' -C '/home/bobb/production/workspace.production/www/recipes' * ||:"
                 sh "./backup.sh '${WORKSPACE}/recipes.tgz'"
                 loadIfExists './status.groovy'
                 archiveArtifacts 'recipes.tgz'
@@ -27,9 +25,7 @@ pipeline {
         }
         stage ('Backup Versions') {
             steps {
-                dir ('/home/bobb/production/workspace.production/www/versions') {
-                   sh "tar czf '${WORKSPACE}/versions.tgz' * ||:"
-                } 
+                sh "tar czf '${WORKSPACE}/versions.tgz' -C '/home/bobb/production/workspace.production/www/versions' * ||:"
                 sh "./backup.sh '${WORKSPACE}/versions.tgz'"
                 loadIfExists './status.groovy'
                 archiveArtifacts 'versions.tgz'

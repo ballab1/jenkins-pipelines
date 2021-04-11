@@ -21,6 +21,7 @@ pipeline {
             steps {
                 sh '/usr/local/nagios/libexec/check_disk -c 90% -w 70% -p /host/dev/sda2'
 //                loadIfExists './status.groovy'
+            }
         }
     }
     post {

@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -x
 source /home/bobb/.bin/trap.bashlib
 
 
@@ -7,11 +7,11 @@ function checkFiles()
 {
     local -r tarFile="${1:?}"
 
-
     local -a srcFiles=()
     while read -r file; do
         [ -e "$file" ] || continue
-        srcFiles+=( $(sudo find "$file" -type f) )
+        [ -e "${file}/.git" ] || continue
+        srcFiles+=( $(sudo find "$file" -type f | grep -v '.git') )
     done < "${PROGRAM_DIR}/tarfiles.lst"
 
     local -i status=0
@@ -32,7 +32,7 @@ function checkFiles()
                      [ "$(sha256sum ".$file" | cut -d ' ' -f 1)" = "$(sudo sha256sum "$file" | cut -d ' ' -f 1)" ] && continue
                 fi
                 status=1
-                break
+                echo "    $file"
              done
         fi
         popd > /dev/null  ||:
@@ -44,7 +44,9 @@ function checkFiles()
 
     echo
     echo "${NODENAME}: Creating backup of files"
-    sudo tar -cvzf "${tarFile}" "${srcFiles[@]}" &> "${tarFile//.tgz}.log" ||:
+    sudo tar -cvzf "${WORKSPACE_DIR}/${tarFile}" "${srcFiles[@]}" &> "${WORKSPACE_DIR}/${tarFile//.tgz}.log" ||:
+
+    [ "$(sha256sum "${WORKSPACE_DIR}/${tarFile}" | cut -d ' ' -f 1)" = "$(sha256sum "${BACKUP_DIR}/$tarFile" | cut -d ' ' -f 1)" ] && return 0
 
     return 1
 }
@@ -69,13 +71,18 @@ function main() {
     local -r tarfile="${nodeName}.cfg.tgz"
     local last="$(lastBackup "$tarfile")"
     {
-        if checkFiles "$tarfile"; then
+        local -i status=0
+        local results="$(checkFiles "$tarfile")" && status=$? || status=$?
+        if [ "$status" -eq 0 ]; then
             echo "${NODENAME}: no changes detected since '$last'"
+            echo "$results"
         else
             echo "${NODENAME}: changes detected since '$last'"
+            echo "$results"
             saveBackup "$tarfile"
         fi
-    } | tee "${nodeName}.log"
+        echo
+ } | tee "${WORKSPACE_DIR}/${nodeName}.log"
     return 0
 }
 
@@ -136,12 +143,13 @@ set -o errtrace
 declare -ri MAX_FILES=${MAX_FILES:-10}
 declare -r BACKUP_DIR="${BACKUP_DIR:-/home/bobb/src}"
 declare -r PROGRAM_DIR="$(dirname "${BASH_SOURCE[0]}")"
+declare -r WORKSPACE_DIR="${WORKSPACE:-pwd}"
 declare -r TEMP_DIR='/tmp/backups'
 
 export TERM=linux
 declare -r NODENAME=$(hostname -f)
-export RESULTS="./${NODENAME}.txt" 
-export JOB_STATUS=./status.groovy 
+export RESULTS="${WORKSPACE_DIR}/${NODENAME}.txt" 
+export JOB_STATUS=${WORKSPACE_DIR}/status.groovy 
 
 trap onexit ERR
 trap onexit INT
