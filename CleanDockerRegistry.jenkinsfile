@@ -33,6 +33,7 @@ pipeline {
         ansiColor('xterm') {
           checkout scm
 	  sh 'sudo ./clean-docker-registry.sh'
+          loadIfExists './status.groovy' 
           archiveArtifacts allowEmptyArchive: true, artifacts: 'summary.log'
         }
       }

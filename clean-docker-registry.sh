@@ -70,19 +70,35 @@ function show_summary()
     echo
     df
 
+    local -i blocksRecovered=$(( blocksAfterRemovingEmptyTags - blocksAtStart ))
     echo
     echo
     echo "available blocks at start:                   $blocksAtStart"
     echo "available blocks after GC:                   $blocksAfterGC"
     echo "available blocks after removing empty tags:  $blocksAfterRemovingEmptyTags"
-    echo "blocks recovered:                            $(( blocksAfterRemovingEmptyTags - blocksAtStart ))"
+    echo "blocks recovered:                            $blocksRecovered"
     echo "repository directories deleted:              ${#removedRepos[*]}"
     if [ "${#removedRepos[*]}" -gt 0 ]; then
         echo 'Removed repositories:'
         printf '    %s\n' "${removedRepos[@]}"
     fi
     echo
+    [ "$blocksRecovered" -eq 0 ] || updateStatus "addBadge('warning.gif','${blocksRecovered} blocks recovered')"      
 }
+
+#############################################################################################
+function updateStatus()
+{
+    local -r text=${1:?}
+    local -r force=${2:-}
+
+    [ -z "${text:-}" ] && return 0
+    local job_status="${WORKSPACE:-.}/status.groovy"
+    if [ "${force:-}" ] || [ ! -s "$job_status" ]; then
+        (echo "manager.$text"; echo "currentBuild.result = 'UNSTABLE'") > "$job_status"
+    fi
+    return 0
+} 
 #############################################################################################
 
 # Use the Unofficial Bash Strict Mode

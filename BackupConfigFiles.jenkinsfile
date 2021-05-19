@@ -9,11 +9,10 @@ def pipelineProcess() {
 
 def pipelineAction()  {
     return { nodeName ->
-	sh './checkMounted.sh /mnt/ubuntu'
-	loadIfExists './status.groovy'
-	
-	sh "./backup-cfg.sh '${nodeName}'"
-	loadIfExists './status.groovy'
+        catchError(buildResult: 'UNSTABLE', stageResult: 'UNSTABLE') {
+            sh './checkMounted.sh /mnt/ubuntu'
+	    sh "./backup-cfg.sh '${nodeName}'"
+        }
 	stash allowEmpty: true, includes: "${nodeName}.log", name: nodeName
 	archiveArtifacts allowEmptyArchive: true, artifacts: "${nodeName}*" 
     }

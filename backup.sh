@@ -62,8 +62,8 @@ declare -r BACKUP_DIR="${BACKUP_DIR:-/home/bobb/src}"
 
 export TERM=linux
 declare -r NODENAME=$(hostname -f)
-export RESULTS="./${NODENAME}.txt" 
-export JOB_STATUS=./status.groovy 
+export RESULTS="${WORKSPACE:-.}/${NODENAME}.txt" 
+export JOB_STATUS="${WORKSPACE:-.}/status.groovy"
 
 trap onexit ERR
 trap onexit INT

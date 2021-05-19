@@ -44,16 +44,16 @@ function latestUpdates()
         return $status
     fi
 
-    if grep -s '*** System restart required ***' <<< "$text"; then
-        :> "$JOB_STATUS"
-        updateStatus "addBadge('warning.gif','${NODENAME}: *** System restart required ***')"
-        return $status
-    fi
-
     local msg=$(grep -P '\d+ upgraded, \d+ newly installed, \d+ to remove and \d+ not upgraded' <<< "$text" ||:)
     if [ "$msg" ]; then
         local -i changes=$(echo " $msg" | sed 's| and|,|' | awk '{print $0}' RS=',' | awk '{print $1}' | jq -s 'add') ||:
         [ $changes -gt 0 ] && updateStatus "addBadge('completed.gif','''${NODENAME}: $(extractMsg "$text")''')"
+    fi
+
+    if grep -s '*** System restart required ***' <<< "$text"; then
+        :> "$JOB_STATUS"
+        updateStatus "addBadge('warning.gif','${NODENAME}: *** System restart required ***')"
+        return $status
     fi
 
     sudo /usr/bin/apt autoremove -y &>/dev/null
@@ -201,9 +201,9 @@ declare -r NODENAME=${1:-$(hostname -s)}
 shift
 
 export TERM=linux
-export RESULTS="./${NODENAME}.txt"
-export ERRORS="./errors.txt"
-export JOB_STATUS=./status.groovy
+export RESULTS="${WORKSPACE:-.}/${NODENAME}.txt"
+export ERRORS="${WORKSPACE:-.}/${NODENAME}.errors.txt"
+export JOB_STATUS="${WORKSPACE:-.}/status.groovy"
 
 trap onexit ERR
 trap onexit INT
