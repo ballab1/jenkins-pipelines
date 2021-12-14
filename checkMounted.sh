@@ -46,7 +46,7 @@ set -o errtrace
 declare -r MOUNTPATH="${1:?}"
 
 export TERM=linux
-export JOB_STATUS="${WORKSPACE:.}/status.groovy"
+export JOB_STATUS="${WORKSPACE:-.}/status.groovy"
 
 trap onexit ERR
 trap onexit INT

@@ -8,27 +8,28 @@ function main() {
     :> "$JOB_STATUS"
 
     local -r filename="$(basename "$target")"
-    if [ -e "${BACKUP_DIR}/$filename" ]; then
-        [ "$(sha256sum "$target" | cut -d ' ' -f 1)" = "$(sha256sum "${BACKUP_DIR}/$filename" | cut -d ' ' -f 1)" ] && return 0
+    local -r backupFile="${BACKUP_DIR}/$filename"
+    if [ -e "$backupFile" ]; then
+        [ "$(sha256sum "$target" | cut -d ' ' -f 1)" = "$(sha256sum "$backupFile" | cut -d ' ' -f 1)" ] && return 0
     fi
 
     local -r base="${filename%.*}" 
-    sudo mkdir -p "${BACKUP_DIR}/$base"
+    mkdir -p "${BACKUP_DIR}/$base"
 
     local newfile="${BACKUP_DIR}/${base}/${base}.$(date +"%Y%m%d").${filename##*.}"
-    sudo cp "$target" "$newfile"
-    updateStatus "addBadge('completed.gif','${NODENAME}: backed up to $newFile')"
+    cp "$target" "$newfile"
+    updateStatus "addBadge('completed.gif','${NODENAME}: backed up to ${newfile}')"
 
-    [ -e "${BACKUP_DIR}/$filename" ] && sudo rm "${BACKUP_DIR}/$filename"
-    sudo ln -s "$newfile" "${BACKUP_DIR}/$filename"
+    [ -e "$backupFile" ] && rm "$backupFile"
+    ln -s "$newfile" "$backupFile"
 
     local -a files
     mapfile -t files < <(find "${BACKUP_DIR}/$base" -maxdepth 1 -mindepth 1 -type f | sort -r)
 
     local -i i="${#files[*]}"
     while [ $(( i-- )) -ge "$MAX_FILES" ]; do
-        sudo rm "${files[$i]}"
-        updateStatus "addBadge('completed.gif','${NODENAME}: backed up to $newFile\\nremoved ${files[$i]}')" 'force'
+        rm "${files[$i]}"
+        updateStatus "addBadge('completed.gif','${NODENAME}: backed up to ${newfile}\\nremoved ${files[$i]}')" 'force'
     done
     return 0
 }

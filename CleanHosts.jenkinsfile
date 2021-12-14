@@ -4,10 +4,10 @@
 processInParallel (
     agent: 'master',
     items: activeNodes(),
-    process: { nodeName, body -> 
+    process: { nodeName, body ->
         fixedNodeStep(nodeName, body)
     },
     action: { nodeName ->
-        sh 'ssh bobb@' + nodeName + '.home rm -rf /home/jenkins.s3/workspace/*' 
+        sh  resolve('ssh bobb@', nodeName) + ' rm -rf /home/jenkins.s3/workspace/*'
     }
 )
