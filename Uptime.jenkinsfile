@@ -3,7 +3,7 @@
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
 pipeline {
-    agent { label 'master' }
+    agent { label 'built-in' }
     options {
         buildDiscarder(logRotator(numToKeepStr: '20'))
         disableConcurrentBuilds()
@@ -14,9 +14,9 @@ pipeline {
         stage ('Process Items') {
             steps {
                 parallelSteps(activeNodes('true'),
-                              { nodeName, body -> 
+                              { nodeName, body ->
                                   nodeStep(nodeName, body)
-                              }, 
+                              },
                               { nodeName ->
                                   sh "./realUptime.sh > ${nodeName}.txt"
                                   archiveArtifacts "${nodeName}.txt"

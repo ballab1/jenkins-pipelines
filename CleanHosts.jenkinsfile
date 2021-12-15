@@ -2,7 +2,7 @@
 @Library('jenkins-sharedlibs')_
 
 processInParallel (
-    agent: 'master',
+    agent: 'built-in',
     items: activeNodes(),
     process: { nodeName, body ->
         fixedNodeStep(nodeName, body)

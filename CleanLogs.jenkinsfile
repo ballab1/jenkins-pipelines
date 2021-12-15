@@ -2,9 +2,9 @@
 @Library('jenkins-sharedlibs')_
 
 processInParallel (
-    agent: 'master',
-    items: activeNodes(), 
-    process: { nodeName, body -> 
+    agent: 'built-in',
+    items: activeNodes(),
+    process: { nodeName, body ->
         nodeStep(nodeName, body)
     },
     action: { nodeName ->

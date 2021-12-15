@@ -14,19 +14,19 @@ def pipelineAction()  {
 	    sh "./backup-cfg.sh '${nodeName}'"
         }
 	stash allowEmpty: true, includes: "${nodeName}.log", name: nodeName
-	archiveArtifacts allowEmptyArchive: true, artifacts: "${nodeName}*" 
+	archiveArtifacts allowEmptyArchive: true, artifacts: "${nodeName}*"
     }
 }
 
 
 pipeline {
-    agent { label 'master' }
+    agent { label 'built-in' }
     options {
         buildDiscarder(logRotator(numToKeepStr: '20'))
         disableConcurrentBuilds()
         disableResume()
         timestamps()
-    } 
+    }
     stages {
         stage ('Process Items') {
             steps {
@@ -45,7 +45,7 @@ pipeline {
                          def nodeName = nodes[i];
                          unstash name: nodeName
                          if (fileExists("${nodeName}.log")) {
-                             summary += readFile("${nodeName}.log")   
+                             summary += readFile("${nodeName}.log")
                          }
                          else {
                              echo 'no stash file located'
@@ -65,4 +65,4 @@ pipeline {
             deleteDir()
         }
     }
-} 
+}

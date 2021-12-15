@@ -28,7 +28,7 @@ def prepareNodeStage(String host) {
 timestamps {
 
   stage ('Initialization') {
-    node('master') {
+    node('built-in') {
       properties([
         buildDiscarder(logRotator(numToKeepStr: '20')),
         disableConcurrentBuilds(),
@@ -37,9 +37,9 @@ timestamps {
           [$class: 'GenericTrigger',
             genericVariables: [
               [
-                key: 'reponame', 
-                defaultValue: params.reponame, 
-                value: '$.repository.name', 
+                key: 'reponame',
+                defaultValue: params.reponame,
+                value: '$.repository.name',
                 regexpFilter: '-(deploy-s1|deploy-s3|deploy-s4|deploy|stuff)$'
               ]
             ],
@@ -62,7 +62,7 @@ timestamps {
         }
       }
       if (names.size() == 0) {
-        manager.buildUnstable() 
+        manager.buildUnstable()
       }
     }
   }
