@@ -16,7 +16,7 @@ pipeline {
                 docker {
                     image 's2.ubuntu.home:5000/alpine/build_container:latest'
                     label 'docker-host'
-                    args "--volume '${WORKSPACE}:/opt' --entrypoint='' --dns=10.3.1.1"
+                    args "--volume '${WORKSPACE}:/opt' --entrypoint='' --dns=10.3.1.4"
                     registryUrl 'http://s2.ubuntu.home:5000/'
                 }
             }
@@ -27,7 +27,7 @@ pipeline {
                           cp --remove-destination "$(dirname "$(command -v docker-utilities)")/registryReport.groovy" /opt
                        '''
                 }
-                stash includes: 'registryContents.json, storage.txt, registryReport.groovy', name: 'json'
+                stash includes: 'registryContents.json, storage.txt, registryReport.groovy',  name: 'json'
                 archiveArtifacts allowEmptyArchive: true, artifacts: 'registryContents*.json'
             }
         }

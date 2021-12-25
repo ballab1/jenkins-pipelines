@@ -61,6 +61,7 @@ function kafkaJson()
     echo -n '"blocksAfterRemovingEmptyTags": '$blocksAfterRemovingEmptyTags', '
     echo -n '"blocksRecovered": '$blocksRecovered', '
     echo '"deletedRepos": '${#removedRepos[*]}' }'
+    echo
 }
 
 #############################################################################################
@@ -110,7 +111,8 @@ IFS=$'\n\t'
 set +o verbose
 set +o xtrace
 export TERM=linux
-
+declare LOG="${1:-summary.log}"
+:> "$LOG"
 
 # ensure this script is run as root
 if [[ $EUID != 0 ]]; then
@@ -136,5 +138,5 @@ removeEmptyTags '.'
 popd
 blocksAfterRemovingEmptyTags=$(df /dev/sdb1 | sed '1d' | awk '{print $4}')
 
-show_summary | tee summary.log
-chmod 666 summary.log
+show_summary | tee "$LOG"
+chmod 666 "$LOG"

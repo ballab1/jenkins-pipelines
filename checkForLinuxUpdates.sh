@@ -70,12 +70,25 @@ function main()
     echo "    checking for linux updates on: $(hostname -s)"
     echo "    current directory: $(pwd)"
 
-    removeLocks            || status=$?
-    showWhatNeedsDone      || status=$?
-    latestUpdates          || status=$?
-    report                 || status=$?
-    showLinuxVersions      || status=$?
-    removeUneededPackages  || status=$?
+    if [ "$(hostname -s)" = 'raspberrypi' ]; then
+#        sudo apt autoremove
+#        sudo apt clean
+        sudo apt update
+        local updates="$(sudo apt list --upgradable)"
+        if [ "$(echo "$updates:-}" | wc -l)" -gt 1 ];then
+            sudo apt full-upgrade -y
+            sudo apt autoremove
+            sudo apt clean
+#            sudo reboot
+        fi
+    else
+        removeLocks            || status=$?
+        showWhatNeedsDone      || status=$?
+        latestUpdates          || status=$?
+        report                 || status=$?
+        showLinuxVersions      || status=$?
+        removeUneededPackages  || status=$?
+    fi
 
     [ "$status" -eq 0 ] && rm "$ERRORS"
     return $status

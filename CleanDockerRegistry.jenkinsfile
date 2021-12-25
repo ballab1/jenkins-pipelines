@@ -1,4 +1,10 @@
+import groovy.transform.Field
+
 @Library('jenkins-sharedlibs')_
+
+// Initialize here so it is still available in post block if build fails.
+@Field String SUMMARY = '${WORKSPACE}/summary.log'
+
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -18,7 +24,7 @@ pipeline {
         ansiColor('xterm') {
           checkout scm
           sh '''
-                unset USER; unset USERNAME
+            unset USER; unset USERNAME
 	        ./updateBin.sh
 	        ./docker-utilities delete --max 6 --no_confirm_delete 'alpine/.*' ||:
 	        ./docker-utilities delete --max 3 --no_confirm_delete 'thirdparty/.*' ||:
@@ -32,19 +38,20 @@ pipeline {
       steps {
         ansiColor('xterm') {
           checkout scm
-	  sh 'sudo ./clean-docker-registry.sh'
-          loadIfExists './status.groovy' 
-          archiveArtifacts allowEmptyArchive: true, artifacts: 'summary.log'
+	      sh 'sudo ./clean-docker-registry.sh' + SUMMARY
+          loadIfExists './status.groovy'
+	      sh '(df | grep "/mnt/usbdrive" > ' + SUMMARY + ')'
+          archiveArtifacts allowEmptyArchive: true, artifacts: SUMMARY
         }
       }
     }
   }
   post {
     always {
-        kafkaBuildReporter()       
+        kafkaBuildReporter()
     }
     cleanup {
         deleteDir()
     }
   }
-} 
+}

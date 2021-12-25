@@ -1,4 +1,10 @@
+import groovy.transform.Field
+
 @Library('jenkins-sharedlibs')_
+
+// Initialize here so it is still available in post block if build fails.
+@Field String WWW = '/home/bobb/production/workspace.production/www/'
+
 
 pipeline {
     agent { label 'ubuntu-s3' }
@@ -11,24 +17,32 @@ pipeline {
     stages {
         stage ('Check mount') {
             steps {
-                sh returnStatus: true, script: "./checkMounted.sh /mnt/Registry"
+                sh returnStatus: true, script: "./checkMounted.sh /mnt/home"
                 loadIfExists './status.groovy'
             }
         }
         stage ('Backup Recipes') {
             steps {
-                sh "tar czf '${WORKSPACE}/recipes.tgz' -C '/home/bobb/production/workspace.production/www/recipes' * ||:"
+//				dir (WWW + 'recipes') {
+//                    sh "ls -l"
+//                    sh "tar czf '${WORKSPACE}/recipes.tgz' * ||:"
+                    sh "cd /home/bobb/production/workspace.production/www/recipes;tar czf '${WORKSPACE}/recipes.tgz' *;cd '${WORKSPACE}'"
+//                }
                 sh "./backup.sh '${WORKSPACE}/recipes.tgz'"
                 loadIfExists './status.groovy'
-                archiveArtifacts 'recipes.tgz'
+                archiveArtifacts allowEmptyArchive: true, artifacts: 'recipes.tgz'
            }
         }
         stage ('Backup Versions') {
             steps {
-                sh "tar czf '${WORKSPACE}/versions.tgz' -C '/home/bobb/production/workspace.production/www/versions' * ||:"
+//				dir (WWW + 'versions') {
+//                    sh "ls -l"
+//                    sh "tar czf '${WORKSPACE}/versions.tgz' * ||:"
+                    sh "cd /home/bobb/production/workspace.production/www/versions;tar czf '${WORKSPACE}/versions.tgz' *;cd '${WORKSPACE}'"
+//                }
                 sh "./backup.sh '${WORKSPACE}/versions.tgz'"
                 loadIfExists './status.groovy'
-                archiveArtifacts 'versions.tgz'
+                archiveArtifacts allowEmptyArchive: true, artifacts: 'versions.tgz'
            }
         }
     }

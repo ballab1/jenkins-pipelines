@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -x
 source /home/bobb/.bin/trap.bashlib
 
 #---------------------------------------------------------------------------- 
@@ -49,7 +49,7 @@ function updateStatus()
 
     [ -z "${text:-}" ] && return 0
     if [ "${force:-}" ] || [ ! -s "$JOB_STATUS" ]; then
-        (echo "manager.$text"; echo "currentBuild.result = 'UNSTABLE'") > "$JOB_STATUS"
+        (set -x;echo "manager.$text"; echo "currentBuild.result = 'UNSTABLE'") > "$JOB_STATUS"
     fi
     return 0
 }

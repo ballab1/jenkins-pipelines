@@ -9,8 +9,10 @@ function main()
     local mount="$(mount | grep "$MOUNTPATH" | cut -d ' ' -f 3)"
     if [ "$mount" = "$MOUNTPATH" ]; then
        (timeout --signal=KILL 10 ls -d "$MOUNTPATH") && exit 0
+       echo 'STALE MOUNT detected'
        updateStatus 'STALE MOUNT detected'
     else
+       echo "${MOUNTPATH} is not mounted" 
        updateStatus "${MOUNTPATH} is not mounted" 
     fi
     exit 127
@@ -53,4 +55,4 @@ trap onexit INT
 trap onexit PIPE
 trap onexit EXIT
 
-main
+main "$@"
