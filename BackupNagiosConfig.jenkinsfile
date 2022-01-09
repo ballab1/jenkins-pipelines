@@ -29,4 +29,12 @@ pipeline {
            }
         }
     }
+    post() {
+        always {
+            kafkaBuildReporter()
+        }
+        cleanup {
+            deleteDir()
+        }
+	}
 }

@@ -67,7 +67,7 @@ function lastBackup() {
 function main() {
 
     local -r nodeName="${1:?}"
-    [ "$nodeName" = 'rasberry' ] && 
+    [ "$nodeName" = 'rasberry' ] && return
 
     local -r tarfile="${nodeName}.cfg.tgz"
     local last="$(lastBackup "$tarfile")"

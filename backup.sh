@@ -1,4 +1,4 @@
-#!/bin/bash -x
+#!/bin/bash
 source /home/bobb/.bin/trap.bashlib
 
 #---------------------------------------------------------------------------- 
@@ -10,9 +10,29 @@ function main() {
     local -r filename="$(basename "$target")"
     local -r backupFile="${BACKUP_DIR}/$filename"
     if [ -e "$backupFile" ]; then
-        [ "$(sha256sum "$target" | cut -d ' ' -f 1)" = "$(sha256sum "$backupFile" | cut -d ' ' -f 1)" ] && return 0
+        [ "$(tar xOzf "$target" | sha256sum | cut -d ' ' -f 1)" = "$( tar xOzf "$backupFile" | sha256sum | cut -d ' ' -f 1)" ] && return 0
+        mkdir -p "${WORKSPACE}/tmp/backup"
+        mkdir -p "${WORKSPACE}/tmp/target"
+        local -a files=()
+        mapfile -t files <((cd "${WORKSPACE}/tmp/backup" && tar xzf "$backupFile"; cd "${WORKSPACE}/tmp/target" && tar xzf "$target") | sort -u)
+        local file diffs=0
+        for file in "${files[@]}"; do
+            if [ ! -f "backup/$file"  ]; then
+                echo "removed file: '$file'"
+                ((diffs++)) ||:
+            elif [ ! -f "target/$file"  ]; then
+                echo "new file:     '$file'"
+                ((diffs++)) ||:
+            elif diff -q "backup/$file" "target/$file"; then
+                echo "files differ:  'backup/$file' & 'target/$file'"
+                ((diffs++)) ||:
+            else
+                rm "target/$file" "backup/$file"
+            fi
+        done
+        [ "$diffs" -eq 0 ] && return 0
     fi
-
+ 
     local -r base="${filename%.*}" 
     mkdir -p "${BACKUP_DIR}/$base"
 
@@ -37,6 +57,7 @@ function main() {
 #----------------------------------------------------------------------------
 function onexit()
 {
+    [ "${WORKSPACE}" ] && [ -f "${WORKSPACE}/tmp" ] && rm -rf "${WORKSPACE}/tmp"
     echo
     return 1
 }

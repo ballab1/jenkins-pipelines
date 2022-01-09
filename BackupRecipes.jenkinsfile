@@ -23,7 +23,7 @@ pipeline {
         }
         stage ('Backup Recipes') {
             steps {
-//				dir (WWW + 'recipes') {
+//               dir (WWW + 'recipes') {
 //                    sh "ls -l"
 //                    sh "tar czf '${WORKSPACE}/recipes.tgz' * ||:"
                     sh "cd /home/bobb/production/workspace.production/www/recipes;tar czf '${WORKSPACE}/recipes.tgz' *;cd '${WORKSPACE}'"
@@ -35,7 +35,7 @@ pipeline {
         }
         stage ('Backup Versions') {
             steps {
-//				dir (WWW + 'versions') {
+//               dir (WWW + 'versions') {
 //                    sh "ls -l"
 //                    sh "tar czf '${WORKSPACE}/versions.tgz' * ||:"
                     sh "cd /home/bobb/production/workspace.production/www/versions;tar czf '${WORKSPACE}/versions.tgz' *;cd '${WORKSPACE}'"
@@ -44,6 +44,14 @@ pipeline {
                 loadIfExists './status.groovy'
                 archiveArtifacts allowEmptyArchive: true, artifacts: 'versions.tgz'
            }
+        }
+    }
+    post {
+        always {
+            kafkaBuildReporter()
+        }
+        cleanup {
+            deleteDir()
         }
     }
 }

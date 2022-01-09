@@ -10,11 +10,13 @@ def pipelineProcess() {
 def pipelineAction()  {
     return { nodeName ->
         catchError(buildResult: 'UNSTABLE', stageResult: 'UNSTABLE') {
-            sh './checkMounted.sh /mnt/ubuntu'
-	    sh "./backup-cfg.sh '${nodeName}'"
+            if (nodeName != 'raspberry') {
+                sh './checkMounted.sh /mnt/ubuntu'
+                sh "./backup-cfg.sh '${nodeName}'"
+            }
         }
-	stash allowEmpty: true, includes: "${nodeName}.log", name: nodeName
-	archiveArtifacts allowEmptyArchive: true, artifacts: "${nodeName}*"
+        stash allowEmpty: true, includes: "${nodeName}.log", name: nodeName
+        archiveArtifacts allowEmptyArchive: true, artifacts: "${nodeName}*"
     }
 }
 

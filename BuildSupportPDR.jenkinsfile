@@ -41,15 +41,15 @@ pipeline {
 
                 // make sure 'cwd' is empty so we can run 'git clone' into workspace
                 checkout([$class: 'GitSCM',
-                          branches: [[name: "*/${params.BRANCH}"]], 
-                                      doGenerateSubmoduleConfigurations: false, 
+                          branches: [[name: "*/${params.BRANCH}"]],
+                                      doGenerateSubmoduleConfigurations: false,
                                       extensions: [[$class: 'LocalBranch', localBranch: "${params.BRANCH}"],
-                                                   [$class: 'GitLFSPull'], 
-                                                   [$class: 'SubmoduleOption', 
-                                                    disableSubmodules: false, 
-                                                    parentCredentials: true, 
-                                                    recursiveSubmodules: false, 
-                                                    reference: '', 
+                                                   [$class: 'GitLFSPull'],
+                                                   [$class: 'SubmoduleOption',
+                                                    disableSubmodules: false,
+                                                    parentCredentials: true,
+                                                    recursiveSubmodules: false,
+                                                    reference: '',
                                                     trackingSubmodules: true]
                                                    ],
                                       submoduleCfg: [],
@@ -60,13 +60,13 @@ pipeline {
                 ansiColor('xterm') {
                    sh """
                       git submodule foreach 'dir="\$(basename "\$(pwd)")"; cd ..; git submodule update --init --recursive "\$dir" ||:'
-                      git submodule foreach '[ \$(basename "\$(git config --get remote.origin.url)") = utilities ] || git checkout ${params.BRANCH}'
-                      # git config submodule.utilities.update '!git fetch --all; git checkout --detach origin/${params.BRANCH}'
+                      git submodule foreach '[ \$(basename "\$(git config --get remote.origin.url)") = "work-stuff" ] || git checkout ${params.BRANCH}'
+                      # git config submodule.work-stuff.update '!git fetch --all; git checkout --detach origin/${params.BRANCH}'
                       git submodule update --remote --recursive bin ||:
                       """
                 }
             }
-        }    
+        }
         stage('Build') {
             steps {
                 dir('logs') {
@@ -86,7 +86,7 @@ pipeline {
     post {
         always {
             archiveArtifacts allowEmptyArchive: true, artifacts: 'logs/*,**/*.dependencies.log'
-            kafkaBuildReporter()       
+            kafkaBuildReporter()
         }
         cleanup {
             deleteDir()

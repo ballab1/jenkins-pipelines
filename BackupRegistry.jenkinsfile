@@ -11,7 +11,7 @@ pipeline {
     parameters {
         string(name: 'SOURCE', defaultValue: '/var/lib/docker-registry/docker/registry/v2/', description: 'source directory do backup')
         string(name: 'DESTINATION', defaultValue: '/mnt/Registry', description: 'remote destination for backup')
-    } 
+    }
     stages {
         stage ('Check mount') {
             steps {
@@ -37,8 +37,16 @@ pipeline {
                                            --times               \
                                            '${params.SOURCE}' '${params.DESTINATION}' | tee rsync.log
                     """
-                archiveArtifacts artifacts: 'rsync.log' 
+                archiveArtifacts artifacts: 'rsync.log'
             }
         }
     }
+    post() {
+        always {
+            kafkaBuildReporter()
+        }
+        cleanup {
+            deleteDir()
+        }
+	}
 }

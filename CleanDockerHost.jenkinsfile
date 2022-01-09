@@ -11,6 +11,7 @@ processInParallel (
         ansiColor('xterm') {
             sh '''#!/bin/bash
                   if [[ "$NODE_LABELS" =~ docker ]]; then
+                      (cd bin;git-crypt unlock ~/.crypt-key)
                       ./updateBin.sh
                       ./docker-utilities clean
                   fi

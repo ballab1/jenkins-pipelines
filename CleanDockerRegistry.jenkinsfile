@@ -3,7 +3,7 @@ import groovy.transform.Field
 @Library('jenkins-sharedlibs')_
 
 // Initialize here so it is still available in post block if build fails.
-@Field String SUMMARY = '${WORKSPACE}/summary.log'
+@Field String SUMMARY = 'summary.log'
 
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
@@ -24,6 +24,8 @@ pipeline {
         ansiColor('xterm') {
           checkout scm
           sh '''
+            set -x
+            (cd bin;git-crypt unlock ~/.crypt-key)
             unset USER; unset USERNAME
 	        ./updateBin.sh
 	        ./docker-utilities delete --max 6 --no_confirm_delete 'alpine/.*' ||:
@@ -38,9 +40,9 @@ pipeline {
       steps {
         ansiColor('xterm') {
           checkout scm
-	      sh 'sudo ./clean-docker-registry.sh' + SUMMARY
+	      sh "sudo ./clean-docker-registry.sh"
           loadIfExists './status.groovy'
-	      sh '(df | grep "/mnt/usbdrive" > ' + SUMMARY + ')'
+//	      sh "( df | grep '/mnt/usbdrive' >> ${SUMMARY} )"
           archiveArtifacts allowEmptyArchive: true, artifacts: SUMMARY
         }
       }

@@ -6,23 +6,25 @@ metadata:
   labels:
     jenkins-label: POD_LABEL
 spec:
-  ttlSecondsAfterFinished: 120
   containers:
   - name: jnlp
-    image: s2.ubuntu.home:5000/thirdparty/jenkins/inbound-agent:4.3-9-alpine
+    image: s2.ubuntu.home:5000/thirdparty/jenkins/inbound-agent:home
     imagePullPolicy: Always
+    resources: 
+      limits: 
+        cpu: 1
+        memory: 1Gi
+      requests: 
+        cpu: 1
+        memory: 1Gi
+    stdin: true
+    user: root
+    tty: true 
     volumeMounts:
     - name: workspace-volume
-      mountPath: /home/jenkins
-    - name: ca-pemstore
-      readOnly: true
-      mountPath: /etc/ssl/certs/soho-ball.crt
-      subPath: soho-ball.crt
-  volumes:
-  - name: ca-pemstore
-    configMap:
-      name: ca-pemstore
-      items:
-      - key: soho-ball.pem
-        path: soho-ball.crt
+      mountPath: /home/jenkins/agent
   restartPolicy: Never
+  ttlSecondsAfterFinished: 120
+  volumes:
+  - name: workspace-volume
+    emptyDir: {} 
