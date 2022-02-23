@@ -183,7 +183,7 @@ function showLinuxVersions()
 function showWhatNeedsDone()
 {
     # i686 systems are currently on latest release. No more upgrades!
-    [ "$(uname -m)" = 'i686' ] && return
+    [ "$(uname -m)" != 'x86_64' ] && return
 
 
     local text

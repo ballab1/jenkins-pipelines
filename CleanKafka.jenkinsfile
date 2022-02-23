@@ -23,19 +23,19 @@ pipeline {
         stage ('ubuntu-s3') {
           agent { label 'ubuntu-s3' }
           steps {
-            sh "find ${params.TARGET_DIR} -mindepth 1 -maxdepth 1 -name '*log*'  ! -mtime 10 -delete"
+            sh "sudo find ${params.TARGET_DIR} -mindepth 1 -maxdepth 1 -name '*log*'  ! -mtime 10 -delete"
           }
-        } 
+        }
         stage ('ubuntu-s4') {
           agent { label 'ubuntu-s4' }
           steps {
-            sh "find ${params.TARGET_DIR} -mindepth 1 -maxdepth 1 -name '*log*'  ! -mtime 10 -delete"
+            sh "sudo find ${params.TARGET_DIR} -mindepth 1 -maxdepth 1 -name '*log*'  ! -mtime 10 -delete"
           }
-        } 
+        }
         stage ('ubuntu-s8') {
           agent { label 'ubuntu-s8' }
           steps {
-            sh "find ${params.TARGET_DIR} -mindepth 1 -maxdepth 1 -name '*log*'  ! -mtime 10 -delete"
+            sh "sudo find ${params.TARGET_DIR} -mindepth 1 -maxdepth 1 -name '*log*'  ! -mtime 10 -delete"
           }
         }
       }
@@ -49,4 +49,4 @@ pipeline {
         deleteDir()
     }
   }
-} 
+}

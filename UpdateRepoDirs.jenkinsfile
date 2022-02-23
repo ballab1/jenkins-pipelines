@@ -11,7 +11,22 @@ def prepareNodeStage(String host) {
   return {
     node (host) {
       deleteDir()
-      checkout scm
+      checkout([$class: 'GitSCM',
+                branches: [[name: "*/master"]],
+                            doGenerateSubmoduleConfigurations: false,
+                            extensions: [[$class: 'GitLFSPull'],
+                                         [$class: 'SubmoduleOption',
+                                          disableSubmodules: false,
+                                          parentCredentials: true,
+                                          recursiveSubmodules: false,
+                                          reference: '',
+                                          trackingSubmodules: true]
+                                         ],
+                            submoduleCfg: [],
+                            userRemoteConfigs: [[credentialsId: '935a7b57-da74-45f7-9119-5a0529afb8ae',
+                                                 url: 'https://github.com/ballab1/jenkins-pipelines']
+                                               ]
+              ])
       unstash 'dirspecs'
       sh '''
             hostname
