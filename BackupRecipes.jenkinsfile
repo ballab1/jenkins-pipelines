@@ -18,16 +18,13 @@ pipeline {
         stage ('Check mount') {
             steps {
                 sh returnStatus: true, script: "./checkMounted.sh /mnt/home"
+                sh returnStatus: true, script: "./checkMounted.sh /mnt/k8s"
                 loadIfExists './status.groovy'
             }
         }
         stage ('Backup Recipes') {
             steps {
-//               dir (WWW + 'recipes') {
-//                    sh "ls -l"
-//                    sh "tar czf '${WORKSPACE}/recipes.tgz' * ||:"
-                    sh "cd /home/bobb/production/workspace.production/www/recipes;tar czf '${WORKSPACE}/recipes.tgz' *;cd '${WORKSPACE}'"
-//                }
+                sh "cd /mnt/k8s/recipes;tar czf '${WORKSPACE}/recipes.tgz' *;cd '${WORKSPACE}'"
                 sh "./backup.sh '${WORKSPACE}/recipes.tgz'"
                 loadIfExists './status.groovy'
                 archiveArtifacts allowEmptyArchive: true, artifacts: 'recipes.tgz'
@@ -35,11 +32,7 @@ pipeline {
         }
         stage ('Backup Versions') {
             steps {
-//               dir (WWW + 'versions') {
-//                    sh "ls -l"
-//                    sh "tar czf '${WORKSPACE}/versions.tgz' * ||:"
-                    sh "cd /home/bobb/production/workspace.production/www/versions;tar czf '${WORKSPACE}/versions.tgz' *;cd '${WORKSPACE}'"
-//                }
+                sh "cd /mnt/k8s/versions;tar czf '${WORKSPACE}/versions.tgz' *;cd '${WORKSPACE}'"
                 sh "./backup.sh '${WORKSPACE}/versions.tgz'"
                 loadIfExists './status.groovy'
                 archiveArtifacts allowEmptyArchive: true, artifacts: 'versions.tgz'

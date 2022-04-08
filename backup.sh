@@ -1,6 +1,23 @@
 #!/bin/bash
-source /home/bobb/.bin/trap.bashlib
 
+#---------------------------------------------------------------------------- 
+function expandFile() {
+
+   local -r dir="${1:?}"
+   local -r file="${2:?}"
+
+    mkdir -p "${dir}"
+    cd "${dir}" ||:
+    tar xzf "$file"
+#    ls "${dir}" >&2
+    {
+        local f
+        while read -r f; do
+            sha256sum "$f" | cut -d ' ' -f 1
+            echo "$f" >> "${dir}/../files.txt"
+        done < <(find . -type f)
+     } | sha256sum | cut -d ' ' -f 1
+}
 #---------------------------------------------------------------------------- 
 function main() {
 
@@ -9,12 +26,18 @@ function main() {
 
     local -r filename="$(basename "$target")"
     local -r backupFile="${BACKUP_DIR}/$filename"
+    echo "Comparing ${target} with backup: ${backupFile}"
+
     if [ -e "$backupFile" ]; then
-        [ "$(tar xOzf "$target" | sha256sum | cut -d ' ' -f 1)" = "$( tar xOzf "$backupFile" | sha256sum | cut -d ' ' -f 1)" ] && return 0
-        mkdir -p "${WORKSPACE}/tmp/backup"
-        mkdir -p "${WORKSPACE}/tmp/target"
+        mkdir -p "${WORKSPACE}/tmp"
+        :> "${WORKSPACE}/tmp/files.txt"
+        backupSha="$(expandFile "${WORKSPACE}/tmp/backup" "$backupFile")"
+        targetSha="$(expandFile "${WORKSPACE}/tmp/target" "$target")"
+
+        [ "$backupSha" = "$targetSha" ] && return 0
+
         local -a files=()
-        mapfile -t files <((cd "${WORKSPACE}/tmp/backup" && tar xzf "$backupFile"; cd "${WORKSPACE}/tmp/target" && tar xzf "$target") | sort -u)
+        mapfile -t files < <(sort -u "${WORKSPACE}/tmp/files.txt")
         local file diffs=0
         for file in "${files[@]}"; do
             if [ ! -f "backup/$file"  ]; then
@@ -31,6 +54,9 @@ function main() {
             fi
         done
         [ "$diffs" -eq 0 ] && return 0
+        echo "${diffs} detected between backup: ${backupFile} and ${target}"
+    else
+        echo '    Backup file does ot exist'
     fi
  
     local -r base="${filename%.*}" 
@@ -57,7 +83,7 @@ function main() {
 #----------------------------------------------------------------------------
 function onexit()
 {
-    [ "${WORKSPACE}" ] && [ -f "${WORKSPACE}/tmp" ] && rm -rf "${WORKSPACE}/tmp"
+    [ "${WORKSPACE}" ] && [ -e "${WORKSPACE}/tmp" ] && rm -rf "${WORKSPACE}/tmp"
     echo
     return 1
 }
@@ -79,14 +105,15 @@ function updateStatus()
 
 set -o errtrace
 
+WORKSPACE="${WORKSPACE:-$(pwd)}"
 declare -ri MAX_FILES=${MAX_FILES:-10}
 declare -r BACKUP_DIR="${BACKUP_DIR:-/home/bobb/src}"
-
-export TERM=linux
 declare -r NODENAME=$(hostname -f)
 export RESULTS="${WORKSPACE:-.}/${NODENAME}.txt" 
 export JOB_STATUS="${WORKSPACE:-.}/status.groovy"
+export TERM=linux
 
+source /home/bobb/.bin/trap.bashlib
 trap onexit ERR
 trap onexit INT
 trap onexit PIPE

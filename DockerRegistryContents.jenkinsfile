@@ -38,6 +38,7 @@ pipeline {
                     label 'docker-host'
                     args "--volume '${WORKSPACE}:/home/groovy/scripts'"
                     registryUrl 'http://s2.ubuntu.home:5000/'
+                    reuseNode true
                 }
             }
             steps {
