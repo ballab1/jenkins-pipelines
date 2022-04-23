@@ -16,13 +16,14 @@ pipeline {
                 docker {
                     image 's2.ubuntu.home:5000/alpine/build_container:latest'
                     label 'docker-host'
-                    args "--volume '${WORKSPACE}:/opt' --entrypoint='' --dns=10.3.1.4"
+                    args "--volume '/home/bobb/src/keys:/keys' --volume '${WORKSPACE}:/opt' --entrypoint='' --dns=10.3.1.4"
                     registryUrl 'http://s2.ubuntu.home:5000/'
                 }
             }
             steps {
                 ansiColor('xterm') {
                     sh '''
+                         (cd bin;git-crypt unlock /keys/work-stuff.key)
                           docker-utilities report --format json --output /opt/registryContents.json
                           cp --remove-destination "$(dirname "$(command -v docker-utilities)")/registryReport.groovy" /opt
                        '''

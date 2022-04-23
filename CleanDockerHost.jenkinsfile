@@ -3,7 +3,7 @@
 
 processInParallel (
     agent: 'built-in',
-    items: activeNodes(),
+    items: activeNodes(false),
     process: { nodeName, body ->
         nodeStep(nodeName, body)
     },
@@ -11,7 +11,7 @@ processInParallel (
         ansiColor('xterm') {
             sh '''#!/bin/bash
                   if [[ "$NODE_LABELS" =~ docker ]]; then
-                      (cd bin;git-crypt unlock ~/.crypt-key)
+                       (cd bin;git-crypt unlock /home/bobb/src/keys/work-stuff.key)
                       ./updateBin.sh
                       ./docker-utilities clean
                   fi
