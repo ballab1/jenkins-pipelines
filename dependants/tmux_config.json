@@ -1,4 +1,7 @@
 {
+  "raspberry": [
+    "/home/bobb/.tmux"
+  ],
   "ubuntu-s1": [
     "/home/bobb/.tmux"
   ],

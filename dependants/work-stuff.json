@@ -1,4 +1,7 @@
 {
+  "raspberry": [
+    "/home/bobb/.bin/utilities"
+  ],
   "ubuntu-s2": [
     "/home/bobb/.bin/utilities"
   ],

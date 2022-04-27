@@ -1,4 +1,7 @@
 {
+  "raspberry": [
+    "/home/bobb/.ssh"
+  ],
   "ubuntu-s1": [
     "/home/bobb/.ssh"
   ],

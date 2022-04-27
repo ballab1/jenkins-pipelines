@@ -17,7 +17,6 @@ pipeline {
     stages {
         stage ('Check mount') {
             steps {
-                sh returnStatus: true, script: "./checkMounted.sh /mnt/home"
                 sh returnStatus: true, script: "./checkMounted.sh /mnt/k8s"
                 loadIfExists './status.groovy'
             }

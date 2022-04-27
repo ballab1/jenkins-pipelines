@@ -1,4 +1,7 @@
 {
+  "raspberry": [
+    "/home/bobb/.bin"
+  ],
   "ubuntu-s1": [
     "/home/bobb/.bin"
   ],

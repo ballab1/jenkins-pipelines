@@ -68,7 +68,7 @@ timestamps {
       ])
 
       checkout scm
-      updateRepoDirs reponame
+      updateRepoDirs "${WORKSPACE}/dependants/${reponame}.json"
       stash name: 'dirspecs', allowEmpty: true, includes: '*.dirs'
       for (host in activeNodes()) {
         if (fileExists(host + '.dirs')) {

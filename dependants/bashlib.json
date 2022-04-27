@@ -1,4 +1,10 @@
 {
+  "raspberry": [
+    "/home/bobb/.bin/utilities/bashlib"
+  ],
+  "ubuntu-s1": [
+    "/home/bobb/.bin/utilities/bashlib"
+  ],
   "ubuntu-s2": [
     "/home/bobb/.bin/utilities/bashlib"
   ],

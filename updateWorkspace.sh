@@ -77,6 +77,14 @@ function updateGitDir()
     else
         run git checkout "$ref"
     fi
+    
+    
+    # de-git-crypt
+    if [ "$(grep -c 'git-crypt')" -gt 0 ]; then
+        local repo="$(git remote -v |awk '{split($2, arr, "/"); sub(".git","",arr[3]);print arr[5]; exit}')"
+        local keyFile="/home/bobb/src/keys/${repo}.key"
+        [ -e "$keyFile" ] && git-grypt unlock "$keyFile"
+    fi
     return 0
 }
 
@@ -86,6 +94,7 @@ declare -r grey='\e[90m'
 declare -r white='\e[97m'
 declare -r reset='\e[0m'
 declare -i status=0
+
 
 declare host="${NODE_NAME:-$(hostname)}"
 declare -r results="${1:-${host}}.inf"

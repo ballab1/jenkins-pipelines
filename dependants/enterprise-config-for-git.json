@@ -1,4 +1,7 @@
 {
+  "raspberry": [
+    "/home/bobb/.enterprise"
+  ],
   "ubuntu-s1": [
     "/home/bobb/.enterprise"
   ],
