@@ -32,8 +32,8 @@ pipeline {
             sh "sudo find ${params.TARGET_DIR} -mindepth 1 -maxdepth 1 -name '*log*'  ! -mtime 10 -delete"
           }
         }
-        stage ('ubuntu-s8') {
-          agent { label 'ubuntu-s8' }
+        stage ('ubuntu-s6') {
+          agent { label 'ubuntu-s6' }
           steps {
             sh "sudo find ${params.TARGET_DIR} -mindepth 1 -maxdepth 1 -name '*log*'  ! -mtime 10 -delete"
           }

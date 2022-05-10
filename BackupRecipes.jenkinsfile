@@ -37,6 +37,14 @@ pipeline {
                 archiveArtifacts allowEmptyArchive: true, artifacts: 'versions.tgz'
            }
         }
+        stage ('Backup Web') {
+            steps {
+                sh "cd /mnt/k8s/web;tar czf '${WORKSPACE}/web.tgz' *;cd '${WORKSPACE}'"
+                sh "./backup.sh '${WORKSPACE}/web.tgz'"
+                loadIfExists './status.groovy'
+                archiveArtifacts allowEmptyArchive: true, artifacts: 'web.tgz'
+           }
+        }
     }
     post {
         always {

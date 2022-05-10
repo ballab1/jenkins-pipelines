@@ -27,13 +27,13 @@
   ],
   "ubuntu-s6": [
     "/home/bobb/.bin/utilities/bashlib",
+    "/home/bobb/deploy-kafka/bin/bashlib",
     "/home/bobb/elk-deploy/bin/bashlib"
   ],
   "ubuntu-s7": [
     "/home/bobb/.bin/utilities/bashlib"
   ],
   "ubuntu-s8": [
-    "/home/bobb/.bin/utilities/bashlib",
-    "/home/bobb/deploy-kafka/bin/bashlib"
+    "/home/bobb/.bin/utilities/bashlib"
   ]
 }

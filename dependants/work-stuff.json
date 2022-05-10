@@ -24,13 +24,13 @@
   ],
   "ubuntu-s6": [
     "/home/bobb/.bin/utilities",
+    "/home/bobb/deploy-kafka/bin",
     "/home/bobb/elk-deploy/bin"
   ],
   "ubuntu-s7": [
     "/home/bobb/.bin/utilities"
   ],
   "ubuntu-s8": [
-    "/home/bobb/.bin/utilities",
-    "/home/bobb/deploy-kafka/bin"
+    "/home/bobb/.bin/utilities"
   ]
 }
