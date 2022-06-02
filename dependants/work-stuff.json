@@ -15,6 +15,7 @@
     "/home/bobb/GIT/support/bin",
     "/home/bobb/GIT/support/build_container/build/usr/local/bin",
     "/home/bobb/GIT/pipelines/bin",
+    "/home/bobb/GIT/work-stuff",
     "/home/bobb/GIT/utilities",
     "/home/bobb/deploy-nagios/bin",
     "/home/bobb/deploy-kafka/bin"
