@@ -14,26 +14,25 @@
     "/home/bobb/production/bin/bashlib"
   ],
   "ubuntu-s4": [
+    "/home/bobb/.bin/utilities/bashlib"
+  ],
+  "ubuntu-s5": [
     "/home/bobb/.bin/utilities/bashlib",
     "/home/bobb/GIT/support/bin/bashlib",
     "/home/bobb/GIT/support/build_container/build/usr/local/bin/bashlib",
     "/home/bobb/GIT/utilities/bashlib",
     "/home/bobb/GIT/pipelines/bin/bashlib",
-    "/home/bobb/deploy-kafka/bin/bashlib",
-    "/home/bobb/deploy-nagios/bin/bashlib"
-  ],
-  "ubuntu-s5": [
-    "/home/bobb/.bin/utilities/bashlib"
   ],
   "ubuntu-s6": [
     "/home/bobb/.bin/utilities/bashlib",
-    "/home/bobb/deploy-kafka/bin/bashlib",
     "/home/bobb/elk-deploy/bin/bashlib"
   ],
   "ubuntu-s7": [
-    "/home/bobb/.bin/utilities/bashlib"
+    "/home/bobb/.bin/utilities/bashlib",
+    "/home/bobb/deploy-kafka/bin/bashlib"
   ],
   "ubuntu-s8": [
-    "/home/bobb/.bin/utilities/bashlib"
+    "/home/bobb/.bin/utilities/bashlib",
+    "/home/bobb/deploy-kafka/bin/bashlib"
   ]
 }

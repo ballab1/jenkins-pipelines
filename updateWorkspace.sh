@@ -1,19 +1,19 @@
-#!/bin/bash -x
+#!/bin/bash
 
 #----------------------------------------------------------------------------------------------
 function process()
 {
-    local -r recurse=${1:-'false'}
-    local -r report=${2:-'false'}
+    local -r report=${1:-'false'}
+    local -r recurse=${2:-'false'}
     local -i status stat
 
     echo
     echo "$(hostname):"
     local moduleDir
-    while read -r moduleDir; do
+    for moduleDir in $(< "$dirsFile"); do
         processDir "$moduleDir" "${report:-}" "${recurse:-}" && stat=$? || stat=$?
         [ $stat -eq 0 ] || status=$stat
-    done < <(cat "$dirsFile")
+    done
     return $status
 }
 
@@ -103,7 +103,7 @@ declare -r dirsFile="${host}.dirs"
 if [ -e "$dirsFile" ]; then
 
     process 'false' 'false' && status=$? || status=$?
-    ( process 'false' 'true' ||: ) | tee "$results"
+    ( process 'true' 'false' ||: ) | tee "$results"
 
 fi
 exit 0
