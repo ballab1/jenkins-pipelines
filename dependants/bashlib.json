@@ -21,7 +21,7 @@
     "/home/bobb/GIT/support/bin/bashlib",
     "/home/bobb/GIT/support/build_container/build/usr/local/bin/bashlib",
     "/home/bobb/GIT/utilities/bashlib",
-    "/home/bobb/GIT/pipelines/bin/bashlib",
+    "/home/bobb/GIT/pipelines/bin/bashlib"
   ],
   "ubuntu-s6": [
     "/home/bobb/.bin/utilities/bashlib",
