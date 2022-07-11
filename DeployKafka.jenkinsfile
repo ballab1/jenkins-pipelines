@@ -1,6 +1,16 @@
 @Library('jenkins-sharedlibs')_
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
+@NonCPS
+deployKafka(target) {
+	dir(target){
+		  sh target + '/bin/updateBin.sh'
+		  sh target + '/deploy --down'
+          sh target  + '/deploy --latest --tag ' + params.CONTAINER_TAG
+    }
+}
+
+
 
 pipeline {
   agent any
@@ -15,72 +25,31 @@ pipeline {
     string(name: 'TARGET_DIR', defaultValue: '/home/bobb/kafka-deploy', description: 'target directory for config files')   }
 
   stages {
-    stage ('stop all') {
-      failFast true
-      parallel {
-        stage ('ubuntu-s3') {
-          agent { label 'ubuntu-s3' }
-          steps {
-            dir(params.TARGET_DIR){
-              sh './bin/updateBin.sh'
-              sh './deploy --down'
-            }
-          }
-        }
-        stage ('ubuntu-s7') {
-          agent { label 'ubuntu-s7' }
-          steps {
-            dir(params.TARGET_DIR){
-              sh './bin/updateBin.sh'
-              sh './deploy --down'
-            }
-          }
-        }
-        stage ('ubuntu-s8') {
-          agent { label 'ubuntu-s8' }
-          steps {
-            dir(params.TARGET_DIR){
-              sh './bin/updateBin.sh'
-              sh './deploy --down'
-            }
-          }
-        }
-      }
-    }
-    stage ('ubuntu-s3') {
-      agent { label 'ubuntu-s3' }
-      steps {
-        dir(params.TARGET_DIR){
-          sh './bin/updateBin.sh'
-          sh './deploy --latest --tag ' + params.CONTAINER_TAG
-        }
-      }
-    }
-    stage ('ubuntu-s7') {
-      agent { label 'ubuntu-s7' }
-      steps {
-        dir(params.TARGET_DIR){
-          sh './bin/updateBin.sh'
-          sh './deploy --latest --tag ' + params.CONTAINER_TAG
-        }
-      }
-    }
-    stage ('ubuntu-s6') {
-      agent { label 'ubuntu-s8' }
-      steps {
-        dir(params.TARGET_DIR){
-          sh './bin/updateBin.sh'
-          sh './deploy --latest --tag ' + params.CONTAINER_TAG
-        }
-      }
-    }
+	stage ('ubuntu-s3') {
+	  agent { label 'ubuntu-s3' }
+	  steps {
+		deployKafka(params.TARGET_DIR)
+	  }
+	}
+	stage ('ubuntu-s7') {
+	  agent { label 'ubuntu-s7' }
+	  steps {
+		deployKafka(params.TARGET_DIR)
+	  }
+	}
+	stage ('ubuntu-s8') {
+	  agent { label 'ubuntu-s8' }
+	  steps {
+		deployKafka(params.TARGET_DIR)
+	  }
+	}
   }
   post {
     always {
         kafkaBuildReporter()
     }
-    cleanup {
-        deleteDir()
-    }
+//    cleanup {
+//        deleteDir()
+//    }
   }
 }
