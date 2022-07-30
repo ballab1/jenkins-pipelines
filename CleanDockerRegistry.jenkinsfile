@@ -23,14 +23,16 @@ pipeline {
       steps {
         ansiColor('xterm') {
           checkout scm
-          sh '''
-            (cd bin;git-crypt unlock /home/bobb/src/keys/work-stuff.key)
-            unset USER; unset USERNAME
-	        ./updateBin.sh
-	        ./docker-utilities delete --max 6 --no_confirm_delete 'alpine/.*' ||:
-	        ./docker-utilities delete --max 3 --no_confirm_delete 'thirdparty/.*' ||:
-	        ./docker-utilities delete --max 2 --no_confirm_delete 'i386-ubuntu/.*' ||:
-	     '''
+          dir(WORKSPACE) {
+              sh '''
+                 (cd bin;git-crypt unlock /home/bobb/src/keys/work-stuff.key)
+                 unset USER; unset USERNAME
+                 ./updateBin.sh
+                 ./docker-utilities delete --max 6 --no_confirm_delete 'alpine/.*' ||:
+                 ./docker-utilities delete --max 3 --no_confirm_delete 'thirdparty/.*' ||:
+                 ./docker-utilities delete --max 2 --no_confirm_delete 'i386-ubuntu/.*' ||:
+               '''
+          }
         }
       }
     }
@@ -39,10 +41,12 @@ pipeline {
       steps {
         ansiColor('xterm') {
           checkout scm
-	      sh "sudo ./clean-docker-registry.sh"
-          loadIfExists './status.groovy'
-//	      sh "( df | grep '/mnt/usbdrive' >> ${SUMMARY} )"
-          archiveArtifacts allowEmptyArchive: true, artifacts: SUMMARY
+          dir(WORKSPACE) {
+                sh "sudo ./clean-docker-registry.sh"
+                loadIfExists './status.groovy'
+//                sh "( df | grep '/mnt/usbdrive' >> ${SUMMARY} )"
+            archiveArtifacts allowEmptyArchive: true, artifacts: SUMMARY
+          }
         }
       }
     }

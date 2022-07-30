@@ -109,7 +109,7 @@ set -o pipefail
 IFS=$'\n\t'
 
 set +o verbose
-set +o xtrace
+#set +o xtrace
 export TERM=linux
 declare LOG="${1:-summary.log}"
 :> "$LOG"
