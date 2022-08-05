@@ -1,21 +1,6 @@
 @Library('jenkins-sharedlibs')_
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
-@NonCPS
-deployKafka(target) {
-        dir(target){
-             sh '''
-             cd  ''' + target + '''
-             ./bin/updateBin.sh
-             cd workspace.deploy-kafka/.versions
-             git pull
-             cd ../..
-             ./deploy
-          '''
-    }
-}
-
-
 
 pipeline {
   agent any
@@ -26,8 +11,8 @@ pipeline {
     timestamps()
   }
   parameters {
-    string(name: 'CONTAINER_TAG', defaultValue: 'dev', description: 'version of kafka containers to use')
-    string(name: 'TARGET_DIR', defaultValue: '/home/bobb/kafka-deploy', description: 'target directory for config files')   }
+    string(name: 'CONTAINER_TAG', defaultValue: 'master', description: 'version of kafka containers to use')
+    string(name: 'TARGET_DIR', defaultValue: '/home/bobb/deploy-kafka', description: 'target directory for config files')   }
 
   stages {
         stage ('ubuntu-s3') {
