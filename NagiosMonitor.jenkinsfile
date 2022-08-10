@@ -4,7 +4,7 @@
 pipeline {
     agent {
         docker {
-            image 's2.ubuntu.home:5000/alpine/nagios/4.4.6:dev'
+            image 's2.ubuntu.home:5000/alpine/nagios/4.4.7:dev'
             label 'ubuntu-s3'
             registryUrl 'http://s2.ubuntu.home:5000/'
             args '--cap-add=ALL --network=host --volume=/:/host'

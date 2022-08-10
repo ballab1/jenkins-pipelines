@@ -18,19 +18,19 @@ pipeline {
         stage ('ubuntu-s3') {
           agent { label 'ubuntu-s3' }
           steps {
-              deployKafka(params.TARGET_DIR)
+              deployKafka(params.TARGET_DIR, params.CONTAINER_TAG)
           }
         }
         stage ('ubuntu-s7') {
           agent { label 'ubuntu-s7' }
           steps {
-              deployKafka(params.TARGET_DIR)
+              deployKafka(params.TARGET_DIR, params.CONTAINER_TAG)
           }
         }
         stage ('ubuntu-s8') {
           agent { label 'ubuntu-s8' }
           steps {
-              deployKafka(params.TARGET_DIR)
+              deployKafka(params.TARGET_DIR, params.CONTAINER_TAG)
           }
         }
   }
