@@ -54,7 +54,7 @@ function main() {
             fi
         done
         [ "$diffs" -eq 0 ] && return 0
-        echo "${diffs} detected between backup: ${backupFile} and ${target}"
+        echo "${diffs} differences detected between backup: ${backupFile} and ${target}"
     else
         echo '    Backup file does ot exist'
     fi

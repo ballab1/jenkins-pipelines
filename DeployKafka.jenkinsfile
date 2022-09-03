@@ -33,6 +33,12 @@ pipeline {
               deployKafka(params.TARGET_DIR, params.CONTAINER_TAG)
           }
         }
+        stage ('verify') {
+          agent { label 'ubuntu-s4' }
+          steps {
+              reportZookeeper(['s3', 's7', 's8'])
+          }
+        }
   }
   post {
     always {

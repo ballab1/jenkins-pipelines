@@ -59,7 +59,7 @@ pipeline {
                 sh 'groovy uptimeReport.groovy'
                 archiveArtifacts allowEmptyArchive: true, artifacts: 'report.html'
                 stash includes: 'report.html', name: 'report'
-                postReport('report', 'report.html')
+//                postReport('report', 'report.html')
             }
         }
     }
