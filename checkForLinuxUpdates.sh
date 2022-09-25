@@ -15,7 +15,7 @@ function extractMsg()
     [ "${#data[*]}" -eq 0 ] && return 0
     local -i end="${data[0]}"
 
-    if [ $end -gt $start ]; then
+    if [ "$end" -gt "$start" ]; then
         echo "$msg" | sed -n "$start,$end p"
     fi
     return 0
@@ -26,10 +26,12 @@ function latestUpdates()
 {
     echo
     echo
-    echo 'get latest updates'
+    echo 'Get latest updates'
     local -i status
     local text
 
+    echo
+    echo "sudo /usr/bin/apt-get update -y"
     text="$(sudo /usr/bin/apt-get update -y 2>"$ERRORS")" && status=$? || status=$?
     echo "$text"
     if [ $status -ne 0 ]; then
@@ -37,25 +39,33 @@ function latestUpdates()
         return $status
     fi
 
+    echo
+    echo "sudo /usr/bin/apt-get dist-upgrade -y"
     text="$(sudo /usr/bin/apt-get dist-upgrade -y 2>"$ERRORS")" && status=$? || status=$?
+    # sudo apt-get --with-new-pkgs upgrade"
     echo "$text"
     if [ $status -ne 0 ]; then
         updateStatus "addBadge('error.gif','''${NODENAME}: apt-get dist-upgrade >> ${ERRORS}''')"
         return $status
     fi
 
+    # shellcheck disable=SC2086,SC2155
     local msg=$(grep -P '\d+ upgraded, \d+ newly installed, \d+ to remove and \d+ not upgraded' <<< "$text" ||:)
     if [ "$msg" ]; then
+         # shellcheck disable=SC2086,SC2155
         local -i changes=$(echo " $msg" | sed 's| and|,|' | awk '{print $0}' RS=',' | awk '{print $1}' | jq -s 'add') ||:
-        [ $changes -gt 0 ] && updateStatus "addBadge('completed.gif','''${NODENAME}: $(extractMsg "$text")''')"
+        [ "$changes" -gt 0 ] && updateStatus "addBadge('completed.gif','''${NODENAME}: $(extractMsg "$text")''')"
     fi
 
+    # shellcheck disable=SC2063
     if grep -s '*** System restart required ***' <<< "$text"; then
         :> "$JOB_STATUS"
         updateStatus "addBadge('warning.gif','${NODENAME}: *** System restart required ***')"
         return $status
     fi
 
+    echo
+    echo "sudo /usr/bin/apt autoremove -y"
     sudo /usr/bin/apt autoremove -y &>/dev/null
     return 0
 }
@@ -67,19 +77,22 @@ function main()
     :> "$JOB_STATUS"
 
     local -i status=0
-    echo "    checking for linux updates on: $(hostname -s)"
+    echo "    Checking for linux updates on: $(hostname -s)"
     echo "    current directory: $(pwd)"
 
-    if [ "$(hostname -s)" = 'raspberrypi' ]; then
-#        sudo apt autoremove
-#        sudo apt clean
+    if [ "$(hostname -s)" = 'pi' ]; then
+        echo "sudo apt update"
         sudo apt update
+        # shellcheck disable=SC2086,SC2155
         local updates="$(sudo apt list --upgradable)"
         if [ "$(echo "$updates:-}" | wc -l)" -gt 1 ];then
+# need to look for 'you should consider rebooting.'        
+            echo "sudo apt full-upgrade -y"
             sudo apt full-upgrade -y
+            echo "sudo apt autoremove"
             sudo apt autoremove
+            echo "sudo apt clean"
             sudo apt clean
-#            sudo reboot
         fi
     else
         removeLocks            || status=$?
@@ -111,12 +124,15 @@ function onexit()
 function removeLocks()
 {
     echo
-    echo 'removeLocks'
+    echo 'RemoveLocks'
     local -a pids
+    # shellcheck disable=SC2009
     mapfile -t pids < <(ps -efwH | grep '/usr/bin/apt-get' | grep -v 'grep' | awk '{print $2}')
-    local pid
     if [ "${#pids[*]}" -gt 0 ]; then
         # kill any old 'apt-get' and remove locks
+        echo
+        echo "kill $(printf '%s ' "${pids[@]}")"
+        # shellcheck disable=SC2046
         sudo kill $(printf '%s ' "${pids[@]}")
         echo 'WARNING: removing old locks'
         sudo rm /var/lib/apt/lists/lock
@@ -130,13 +146,19 @@ function removeLocks()
 function removeUneededPackages()
 {
     # remove old linux versions
-    local -r packages=$(dpkg --get-selections | grep -E '^linux-(\w+-){1,2}[4-9]\.' | grep -v "$(uname -r | sed -e 's|-generic||')" | awk '{ print  $1 }' | tr '\n' ' ')
+    echo
+    echo "dpkg --get-selections | grep -E '^linux-(\\w+-){1,2}[4-9]\\.'"
+    # shellcheck disable=SC1117
+    local -r packages=$(dpkg --get-selections | grep -E '^linux-(\\w+-){1,2}[4-9]\.' | grep -v "$(uname -r | sed -e 's|-generic||')" | awk '{ print  $1 }' | tr '\n' ' ')
     local text=''
 
     local -i status=0
     if [ "$packages" ]; then
         echo
         echo 'removing OS versions no longer need'
+        echo
+        echo "sudo /usr/bin/apt-get remove -y $packages; sudo /usr/bin/apt-get purge -y $packages"
+        # shellcheck disable=SC2086
         text="$(sudo /usr/bin/apt-get remove -y $packages; sudo /usr/bin/apt-get purge -y $packages)" ||:
         echo "$text"
         status=1
@@ -158,7 +180,7 @@ function report()
 {
     echo
     echo
-    echo 'report if we need to reboot and/or run fsck'
+    echo 'Report if we need to reboot and/or run fsck'
     local -a checks=('/var/lib/update-notifier/fsck-at-reboot' '/var/run/reboot-required')
     for fl in "${checks[@]}" ; do
         echo "checking $fl"
@@ -175,7 +197,7 @@ function showLinuxVersions()
 {
     echo
     echo
-    echo 'report our linux installations'
+    echo 'Report our linux installations'
     dpkg --get-selections | grep -E '^linux-(\w+-){1,2}[4-9]\.' | grep "$(uname -r | sed -e 's|-generic||')"
 }
 
@@ -188,12 +210,14 @@ function showWhatNeedsDone()
 
     local text
     echo
-    echo 'show what needs done'
+    echo 'Show what needs done'
+    echo "/usr/lib/update-notifier/apt-check --human-readable"
     /usr/lib/update-notifier/apt-check --human-readable ||:
 
     text=$(/usr/lib/ubuntu-release-upgrader/check-new-release --check-dist-upgrade-only) || :
     echo "$text"
-    local txt=$(grep 'New release' <<< "$text" ||:)
+    # shellcheck disable=SC2155
+    local txt="$(grep 'New release' <<< "$text" ||:)"
     [ -z "$txt" ] || updateStatus "addBadge('yellow.gif','''${NODENAME}: ${txt}''')"
 }
 

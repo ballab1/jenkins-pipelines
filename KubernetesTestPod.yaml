@@ -8,7 +8,10 @@ metadata:
 spec:
   containers:
   - name: jnlp
-    image: s2.ubuntu.home:5000/thirdparty/jenkins/inbound-agent:home
+#    env:
+#    - name: JENKINS_JAVA_OPTS
+#    - value: "-Djavax.net.ssl.keyStore=/var/run/ssl/clientsidestore.jks"
+    image: s2.ubuntu.home:5000/thirdparty/inbound-agent:4.13.3-1-jdk11
     imagePullPolicy: Always
     resources: 
       limits: 
@@ -18,13 +21,23 @@ spec:
         cpu: 1
         memory: 1Gi
     stdin: true
-    user: root
+#    user: root
     tty: true 
     volumeMounts:
+#    - name: clientsidestore
+#      mountPath: /var/run/ssl
+#      readOnly: true
+#      subPath: clientsidestore.jks
     - name: workspace-volume
       mountPath: /home/jenkins/agent
   restartPolicy: Never
-  ttlSecondsAfterFinished: 120
+#  ttlSecondsAfterFinished: 120
   volumes:
+#  - name: clientsidestore
+#    secret: 
+#      secretName: jenkins-agent-clientsidestore
+#      items:
+#      - key: clientsidestore
+#        path: clientsidestore.jks
   - name: workspace-volume
     emptyDir: {} 
