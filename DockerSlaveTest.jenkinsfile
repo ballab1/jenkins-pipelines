@@ -4,7 +4,8 @@
 pipeline {
     agent {
         docker {
-	    image 's2.ubuntu.home:5000/thirdparty/jenkinsci/slave:3.16.1-alpine'
+//	    image 's2.ubuntu.home:5000/thirdparty/jenkinsci/slave:3.16.1-alpine'
+	    image 's2.ubuntu.home:5000/thirdparty/inbound-agent:4.13.3-1-jdk11'
             label 'docker-host'
             registryUrl 'http://s2.ubuntu.home:5000/'
         }
