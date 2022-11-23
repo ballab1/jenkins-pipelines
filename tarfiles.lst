@@ -38,4 +38,5 @@
 /etc/samba
 /etc/sudoers
 /etc/sudoers.d
+/etc/sysctl.conf
 /lib/systemd/system/*.service
