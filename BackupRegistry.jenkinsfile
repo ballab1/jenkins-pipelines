@@ -1,4 +1,9 @@
+import groovy.transform.Field
+
 @Library('jenkins-sharedlibs')_
+
+@Field String ROOT = 'root'
+@Field String USER = 'bobb'
 
 pipeline {
     agent { label 'ubuntu-s2' }
@@ -23,7 +28,7 @@ pipeline {
             steps {
 //                                           --compress
 //                                           --password-file='/home/bobb/.inf.nas.rsync'
-                sh """sudo -u xxxxxx rsync --delete              \
+                sh """sudo -u $USER  rsync --delete              \
                                            --devices             \
                                            --executability       \
                                            --force               \
