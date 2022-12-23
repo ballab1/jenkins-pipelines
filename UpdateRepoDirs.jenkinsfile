@@ -12,7 +12,7 @@ def prepareNodeStage(String host) {
     node (host) {
       deleteDir()
       checkout([$class: 'GitSCM',
-                branches: [[name: "*/master"]],
+                branches: [[name: "*/main"]],
                             doGenerateSubmoduleConfigurations: false,
                             extensions: [[$class: 'GitLFSPull'],
                                          [$class: 'SubmoduleOption',

@@ -66,14 +66,14 @@ function updateGitDir()
     readonly branches
     for branch in "${branches[@]}"; do
         if [[ "${branch:0:5}" = '(HEAD' ]]; then
-            run git reset --hard "origin/master"
+            run git reset --hard "origin/main"
         else
             run git checkout "$branch"
             run git reset --hard "origin/$branch"
         fi
     done
     if [ "$ref" = HEAD ]; then
-        run git reset --hard "origin/master"
+        run git reset --hard "origin/main"
     else
         run git checkout "$ref"
     fi

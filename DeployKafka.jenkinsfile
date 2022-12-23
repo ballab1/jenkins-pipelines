@@ -11,7 +11,7 @@ pipeline {
     timestamps()
   }
   parameters {
-    string(name: 'CONTAINER_TAG', defaultValue: 'master', description: 'version of kafka containers to use')
+    string(name: 'CONTAINER_TAG', defaultValue: 'main', description: 'version of kafka containers to use')
     string(name: 'TARGET_DIR', defaultValue: '/home/bobb/deploy-kafka', description: 'target directory for config files')   }
 
   stages {
