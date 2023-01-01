@@ -11,9 +11,11 @@ processInParallel (
         ansiColor('xterm') {
             sh '''#!/bin/bash
                   if [[ "$NODE_LABELS" =~ docker ]]; then
-                       (cd bin;git-crypt unlock /home/bobb/src/keys/work-stuff.key)
-                      ./updateBin.sh
-                      ./docker-utilities clean
+                         docker system prune --all --force
+  #                       (cd bin;git-crypt unlock /home/bobb/src/keys/work-stuff.key)
+  #                      ./updateBin.sh
+#                        ./docker-utilities clean
+                         docker images
                   fi
                 '''
         }
