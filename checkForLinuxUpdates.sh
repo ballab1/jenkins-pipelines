@@ -8,15 +8,23 @@ function extractMsg()
     local -a data
 
     mapfile -t data < <( echo "$msg" | grep -nP '^The following ' | cut -d ':' -f 1 )
-    [ "${#data[*]}" -eq 0 ] && return 0
+    if [ "${#data[*]}" -eq 0 ]; then
+        echo "$msg"
+        return 0
+    fi
+
     local -i start="${data[0]}"
-
     mapfile -t data < <( echo "$msg" | grep -nP '^After this' | cut -d ':' -f 1 )
-    [ "${#data[*]}" -eq 0 ] && return 0
-    local -i end="${data[0]}"
+    if [ "${#data[*]}" -eq 0 ]; then
+        echo "$msg"
+        return 0
+    fi
 
+    local -i end="${data[0]}"
     if [ "$end" -gt "$start" ]; then
         echo "$msg" | sed -n "$start,$end p"
+    else
+        echo "$msg"
     fi
     return 0
 }
@@ -54,7 +62,10 @@ function latestUpdates()
     if [ "$msg" ]; then
          # shellcheck disable=SC2086,SC2155
         local -i changes=$(echo " $msg" | sed 's| and|,|' | awk '{print $0}' RS=',' | awk '{print $1}' | jq -s 'add') ||:
-        [ "$changes" -gt 0 ] && updateStatus "addBadge('completed.gif','''${NODENAME}: $(extractMsg "$text")''')"
+        if [ "$changes" -gt 0 ]; then
+           msg="$(extractMsg "$msg")"
+           [ "$msg" ] && updateStatus "addBadge('completed.gif','''${NODENAME}: ${msg}''')"
+        fi
     fi
 
     # shellcheck disable=SC2063
