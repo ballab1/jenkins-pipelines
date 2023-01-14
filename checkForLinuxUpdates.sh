@@ -61,7 +61,7 @@ function latestUpdates()
     local msg=$(grep -P '\d+ upgraded, \d+ newly installed, \d+ to remove and \d+ not upgraded' <<< "$text" ||:)
     if [ "$msg" ]; then
          # shellcheck disable=SC2086,SC2155
-        local -i changes=$(echo " $msg" | sed 's| and|,|' | awk '{print $0}' RS=',' | awk '{print $1}' | jq -s 'add') ||:
+        local -i changes=$(echo " $msg" | sed 's| and|,|' | awk '{print $0}' RS=',' | awk '{print $1}' | jq -s '.[0:3]|add') ||:
         if [ "$changes" -gt 0 ]; then
            msg="$(extractMsg "$msg")"
            [ "$msg" ] && updateStatus "addBadge('completed.gif','''${NODENAME}: ${msg}''')"
