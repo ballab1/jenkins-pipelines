@@ -20,21 +20,21 @@
     "/home/bobb/GIT/pipelines/bin",
     "/home/bobb/GIT/work-stuff",
     "/home/bobb/GIT/utilities",
-    "/home/bobb/deploy-nagios/bin",
-    "/home/bobb/deploy-kafka/bin"
+    "/home/bobb/deploy-nagios/bin"
   ],
   "ubuntu-s5": [
     "/home/bobb/.bin/utilities"
   ],
   "ubuntu-s6": [
     "/home/bobb/.bin/utilities",
-    "/home/bobb/deploy-kafka/bin",
     "/home/bobb/elk-deploy/bin"
   ],
   "ubuntu-s7": [
-    "/home/bobb/.bin/utilities"
+    "/home/bobb/.bin/utilities",
+    "/home/bobb/deploy-kafka/bin"
   ],
   "ubuntu-s8": [
-    "/home/bobb/.bin/utilities"
+    "/home/bobb/.bin/utilities",
+    "/home/bobb/deploy-kafka/bin"
   ]
 }
