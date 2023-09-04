@@ -8,7 +8,7 @@ script {
 }
 
 pipeline {
-    agent { label 'ubuntu-s4' }
+    agent { label 'ubuntu-s3' }
     options {
         buildDiscarder(logRotator(numToKeepStr: '20'))
         disableConcurrentBuilds()
