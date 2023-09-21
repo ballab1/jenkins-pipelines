@@ -7,6 +7,7 @@ pipeline {
         kubernetes {
             defaultContainer 'jnlp'
             yamlFile 'KubernetesTestPod.yaml'
+            showRawYaml(false)
         }
     }
     options {
@@ -14,6 +15,7 @@ pipeline {
         disableConcurrentBuilds()
         disableResume()
         timestamps()
+        timeout(activity: true, time: 5, unit: 'MINUTES')
     }
     stages {
         stage('hello') {
