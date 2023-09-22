@@ -71,6 +71,8 @@ spec:
       requests: 
         cpu: 1
         memory: 1Gi
+    securityContext:
+        runAsUser: 1000
     stdin: true
     tty: true 
     volumeMounts:
