@@ -53,6 +53,14 @@ pipeline {
                 archiveArtifacts allowEmptyArchive: true, artifacts: 'stormshot.tgz'
            }
         }
+        stage ('Backup Money') {
+            steps {
+                sh "cd /mnt/k8s/money;tar czf '${WORKSPACE}/money.tgz' *;cd '${WORKSPACE}'"
+                sh "./backup.sh '${WORKSPACE}/money.tgz'"
+                loadIfExists './status.groovy'
+                archiveArtifacts allowEmptyArchive: true, artifacts: 'money.tgz'
+           }
+        }
     }
     post {
         always {
