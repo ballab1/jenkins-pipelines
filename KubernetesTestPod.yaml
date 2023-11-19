@@ -9,7 +9,7 @@ spec:
   hostAliases:
   - ip: "10.3.1.10"
     hostnames:
-    - "s3.ubuntu.home"  
+    - "s3.ubuntu.home"
   initContainers:
   - name: jnlp-init
     command:
@@ -27,18 +27,18 @@ spec:
       keytool -importcert -cacerts -noprompt -trustcacerts -alias jenkins_server -file /usr/local/share/ca-certificates/server.crt -storepass changeit
       cp -rL "${JAVA_HOME}/lib/security/cacerts" .
       chmod 644 *
-    image: s2.ubuntu.home:5000/thirdparty/inbound-agent:4.13.3-1-jdk11
+    image: s2.ubuntu.home:5000/thirdparty/inbound-agent:4.13.3-1-jdk17
     imagePullPolicy: Always
-    resources: 
-      limits: 
+    resources:
+      limits:
         cpu: 1
         memory: 1Gi
-      requests: 
+      requests:
         cpu: 1
         memory: 1Gi
     securityContext:
         runAsUser: 0
-    tty: true 
+    tty: true
     volumeMounts:
     - name: root-certs
       mountPath: /usr/local/share/ca-certificates/root.crt
@@ -62,19 +62,19 @@ spec:
       mountPath: /var/run/keystore
   containers:
   - name: jnlp
-    image: s2.ubuntu.home:5000/thirdparty/inbound-agent:4.13.3-1-jdk11
+    image: s2.ubuntu.home:5000/thirdparty/inbound-agent:4.13.3-1-jdk17
     imagePullPolicy: Always
-    resources: 
-      limits: 
+    resources:
+      limits:
         cpu: 1
         memory: 1Gi
-      requests: 
+      requests:
         cpu: 1
         memory: 1Gi
     securityContext:
         runAsUser: 1000
     stdin: true
-    tty: true 
+    tty: true
     volumeMounts:
     - name: certs-volume
       mountPath: /etc/ssl/certs
@@ -88,7 +88,7 @@ spec:
 #  ttlSecondsAfterFinished: 120
   volumes:
   - name: root-certs
-    secret: 
+    secret:
       secretName: root-ca
       defaultMode: 0400
       items:
@@ -97,7 +97,7 @@ spec:
       - key: tls.crt
         path: tls.crt
   - name: server-certs
-    secret: 
+    secret:
       secretName: server-ca
       defaultMode: 0400
       items:
@@ -106,8 +106,8 @@ spec:
       - key: tls.crt
         path: tls.crt
   - name: certs-volume
-    emptyDir: {} 
+    emptyDir: {}
   - name: keystore-volume
-    emptyDir: {} 
+    emptyDir: {}
   - name: workspace-volume
     emptyDir: {}
