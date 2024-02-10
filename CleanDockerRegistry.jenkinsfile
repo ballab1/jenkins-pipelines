@@ -29,7 +29,8 @@ pipeline {
                  unset USER; unset USERNAME
                  ./updateBin.sh
                  ./docker-utilities delete --max 6 --no_confirm_delete 'alpine/.*' ||:
-                 ./docker-utilities delete --max 3 --no_confirm_delete 'thirdparty/.*' ||:
+                 ./docker-utilities delete --max 3 --no_confirm_delete 'docker.io/.*' ||:
+                 ./docker-utilities delete --max 3 --no_confirm_delete 'quay.io/.*' ||:
                  ./docker-utilities delete --max 2 --no_confirm_delete 'i386-ubuntu/.*' ||:
                '''
           }
