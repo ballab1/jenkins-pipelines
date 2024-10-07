@@ -1,24 +1,27 @@
 #!/bin/bash
 
-#---------------------------------------------------------------------------- 
+#----------------------------------------------------------------------------
 function expandFile() {
 
    local -r dir="${1:?}"
    local -r file="${2:?}"
 
-    mkdir -p "${dir}"
-    cd "${dir}" ||:
+    mkdir -p "$dir"
+    cd "$dir" ||:
     tar xzf "$file"
-#    ls "${dir}" >&2
+    local -r files="$(readlink -f "${dir}/../files.txt")"
+    touch "$files"
+#    ls "$dir" >&2
     {
         local f
         while read -r f; do
+            [ -f "$f" ] || continue
             sha256sum "$f" | cut -d ' ' -f 1
-            echo "$f" >> "${dir}/../files.txt"
+            echo "$f" >> "$files"
         done < <(find . -type f)
      } | sha256sum | cut -d ' ' -f 1
 }
-#---------------------------------------------------------------------------- 
+#----------------------------------------------------------------------------
 function main() {
 
     local -r target="${1:?}"
@@ -29,15 +32,16 @@ function main() {
     echo "Comparing ${target} with backup: ${backupFile}"
 
     if [ -e "$backupFile" ]; then
-        mkdir -p "${WORKSPACE}/tmp"
-        :> "${WORKSPACE}/tmp/files.txt"
-        backupSha="$(expandFile "${WORKSPACE}/tmp/backup" "$backupFile")"
-        targetSha="$(expandFile "${WORKSPACE}/tmp/target" "$target")"
+        local -r backup_dir="${WORKSPACE}/tmp/${filename}"
+        mkdir -p "$backup_dir"
+        :> "${backup_dir}/files.txt"
+        backupSha="$(expandFile "${backup_dir}/backup" "$backupFile")"
+        targetSha="$(expandFile "${backup_dir}/target" "$target")"
 
         [ "$backupSha" = "$targetSha" ] && return 0
 
         local -a files=()
-        mapfile -t files < <(sort -u "${WORKSPACE}/tmp/files.txt")
+        mapfile -t files < <(sort -u "${backup_dir}/files.txt")
         local file diffs=0
         for file in "${files[@]}"; do
             if [ ! -f "backup/$file"  ]; then
@@ -58,8 +62,8 @@ function main() {
     else
         echo '    Backup file does ot exist'
     fi
- 
-    local -r base="${filename%.*}" 
+
+    local -r base="${filename%.*}"
     mkdir -p "${BACKUP_DIR}/$base"
 
     local newfile="${BACKUP_DIR}/${base}/${base}.$(date +"%Y%m%d").${filename##*.}"
@@ -100,7 +104,7 @@ function updateStatus()
     fi
     return 0
 }
- 
+
 ##########################################################################################################
 
 set -o errtrace
@@ -109,7 +113,7 @@ WORKSPACE="${WORKSPACE:-$(pwd)}"
 declare -ri MAX_FILES=${MAX_FILES:-10}
 declare -r BACKUP_DIR="${BACKUP_DIR:-/home/bobb/src}"
 declare -r NODENAME=$(hostname -f)
-export RESULTS="${WORKSPACE:-.}/${NODENAME}.txt" 
+export RESULTS="${WORKSPACE:-.}/${NODENAME}.txt"
 export JOB_STATUS="${WORKSPACE:-.}/status.groovy"
 export TERM=linux
 
