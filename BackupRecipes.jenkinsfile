@@ -21,45 +21,49 @@ pipeline {
                 loadIfExists './status.groovy'
             }
         }
-        stage ('Backup Recipes') {
-            steps {
-                sh "cd /mnt/k8s/recipes;tar czf '${WORKSPACE}/recipes.tgz' *;cd '${WORKSPACE}'"
-                sh "./backup.sh '${WORKSPACE}/recipes.tgz'"
-                loadIfExists './status.groovy'
-                archiveArtifacts allowEmptyArchive: true, artifacts: 'recipes.tgz'
-           }
-        }
-        stage ('Backup Versions') {
-            steps {
-                sh "cd /mnt/k8s/versions;tar czf '${WORKSPACE}/versions.tgz' *;cd '${WORKSPACE}'"
-                sh "./backup.sh '${WORKSPACE}/versions.tgz'"
-                loadIfExists './status.groovy'
-                archiveArtifacts allowEmptyArchive: true, artifacts: 'versions.tgz'
-           }
-        }
-        stage ('Backup Web') {
-            steps {
-                sh "cd /mnt/k8s/web;tar czf '${WORKSPACE}/web.tgz' *;cd '${WORKSPACE}'"
-                sh "./backup.sh '${WORKSPACE}/web.tgz'"
-                loadIfExists './status.groovy'
-                archiveArtifacts allowEmptyArchive: true, artifacts: 'web.tgz'
-           }
-        }
-        stage ('Backup Heros') {
-            steps {
-                sh "cd /mnt/k8s/stormshot;tar czf '${WORKSPACE}/stormshot.tgz' *;cd '${WORKSPACE}'"
-                sh "./backup.sh '${WORKSPACE}/stormshot.tgz'"
-                loadIfExists './status.groovy'
-                archiveArtifacts allowEmptyArchive: true, artifacts: 'stormshot.tgz'
-           }
-        }
-        stage ('Backup Money') {
-            steps {
-                sh "cd /mnt/k8s/money;tar czf '${WORKSPACE}/money.tgz' *;cd '${WORKSPACE}'"
-                sh "./backup.sh '${WORKSPACE}/money.tgz'"
-                loadIfExists './status.groovy'
-                archiveArtifacts allowEmptyArchive: true, artifacts: 'money.tgz'
-           }
+        stage ('workers') {
+            parallel {
+                stage ('Backup Recipes') {
+                    steps {
+                        sh "cd /mnt/k8s/recipes;tar czf '${WORKSPACE}/recipes.tgz' *;cd '${WORKSPACE}'"
+                        sh "./backup.sh '${WORKSPACE}/recipes.tgz'"
+                        archiveArtifacts allowEmptyArchive: true, artifacts: 'recipes.tgz'
+                        loadIfExists './status.groovy'
+                   }
+                }
+                stage ('Backup Versions') {
+                    steps {
+                        sh "cd /mnt/k8s/versions;tar czf '${WORKSPACE}/versions.tgz' *;cd '${WORKSPACE}'"
+                        sh "./backup.sh '${WORKSPACE}/versions.tgz'"
+                        archiveArtifacts allowEmptyArchive: true, artifacts: 'versions.tgz'
+                        loadIfExists './status.groovy'
+                   }
+                }
+                stage ('Backup Web') {
+                    steps {
+                        sh "cd /mnt/k8s/web;tar czf '${WORKSPACE}/web.tgz' *;cd '${WORKSPACE}'"
+                        sh "./backup.sh '${WORKSPACE}/web.tgz'"
+                        archiveArtifacts allowEmptyArchive: true, artifacts: 'web.tgz'
+                        loadIfExists './status.groovy'
+                   }
+                }
+                stage ('Backup Heros') {
+                    steps {
+                        sh "cd /mnt/k8s/stormshot;tar czf '${WORKSPACE}/stormshot.tgz' *;cd '${WORKSPACE}'"
+                        sh "./backup.sh '${WORKSPACE}/stormshot.tgz'"
+                        archiveArtifacts allowEmptyArchive: true, artifacts: 'stormshot.tgz'
+                        loadIfExists './status.groovy'
+                   }
+                }
+                stage ('Backup Money') {
+                    steps {
+                        sh "cd /mnt/k8s/money;tar czf '${WORKSPACE}/money.tgz' *;cd '${WORKSPACE}'"
+                        sh "./backup.sh '${WORKSPACE}/money.tgz'"
+                        archiveArtifacts allowEmptyArchive: true, artifacts: 'money.tgz'
+                        loadIfExists './status.groovy'
+                   }
+                }
+            }
         }
     }
     post {
