@@ -1,24 +1,26 @@
-#!/bin/bash
+#!/bin/bash -x
 
-#---------------------------------------------------------------------------- 
+#----------------------------------------------------------------------------
 function expandFile() {
 
    local -r dir="${1:?}"
    local -r file="${2:?}"
 
-    mkdir -p "${dir}"
-    cd "${dir}" ||:
+    mkdir -p "$dir"
+    cd "$dir" ||:
     tar xzf "$file"
-#    ls "${dir}" >&2
+    local -r files="$(readlink -f "${dir}/../files.txt")"
+    touch "$files"
+#    ls "$dir" >&2
     {
         local f
         while read -r f; do
             sha256sum "$f" | cut -d ' ' -f 1
-            echo "$f" >> "${dir}/../files.txt"
+            echo "$f" >> "$files"
         done < <(find . -type f)
      } | sha256sum | cut -d ' ' -f 1
 }
-#---------------------------------------------------------------------------- 
+#----------------------------------------------------------------------------
 function main() {
 
     local -r target="${1:?}"
@@ -58,8 +60,8 @@ function main() {
     else
         echo '    Backup file does ot exist'
     fi
- 
-    local -r base="${filename%.*}" 
+
+    local -r base="${filename%.*}"
     mkdir -p "${BACKUP_DIR}/$base"
 
     local newfile="${BACKUP_DIR}/${base}/${base}.$(date +"%Y%m%d").${filename##*.}"
@@ -100,7 +102,7 @@ function updateStatus()
     fi
     return 0
 }
- 
+
 ##########################################################################################################
 
 set -o errtrace
@@ -109,7 +111,7 @@ WORKSPACE="${WORKSPACE:-$(pwd)}"
 declare -ri MAX_FILES=${MAX_FILES:-10}
 declare -r BACKUP_DIR="${BACKUP_DIR:-/home/bobb/src}"
 declare -r NODENAME=$(hostname -f)
-export RESULTS="${WORKSPACE:-.}/${NODENAME}.txt" 
+export RESULTS="${WORKSPACE:-.}/${NODENAME}.txt"
 export JOB_STATUS="${WORKSPACE:-.}/status.groovy"
 export TERM=linux
 
