@@ -15,6 +15,7 @@ function expandFile() {
     {
         local f
         while read -r f; do
+            [ -f "$f" ] || continue
             sha256sum "$f" | cut -d ' ' -f 1
             echo "$f" >> "$files"
         done < <(find . -type f)
@@ -31,15 +32,16 @@ function main() {
     echo "Comparing ${target} with backup: ${backupFile}"
 
     if [ -e "$backupFile" ]; then
-        mkdir -p "${WORKSPACE}/tmp"
-        :> "${WORKSPACE}/tmp/files.txt"
-        backupSha="$(expandFile "${WORKSPACE}/tmp/backup" "$backupFile")"
-        targetSha="$(expandFile "${WORKSPACE}/tmp/target" "$target")"
+        local -r backup_dir="${WORKSPACE}/tmp/${filename}"
+        mkdir -p "$backup_dir"
+        :> "${backup_dir}/files.txt"
+        backupSha="$(expandFile "${backup_dir}/backup" "$backupFile")"
+        targetSha="$(expandFile "${backup_dir}/target" "$target")"
 
         [ "$backupSha" = "$targetSha" ] && return 0
 
         local -a files=()
-        mapfile -t files < <(sort -u "${WORKSPACE}/tmp/files.txt")
+        mapfile -t files < <(sort -u "${backup_dir}/files.txt")
         local file diffs=0
         for file in "${files[@]}"; do
             if [ ! -f "backup/$file"  ]; then
