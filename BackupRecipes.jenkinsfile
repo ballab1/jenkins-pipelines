@@ -25,40 +25,35 @@ pipeline {
             parallel {
                 stage ('Backup Recipes') {
                     steps {
-                        sh "cd /mnt/k8s/recipes;tar czf '${WORKSPACE}/recipes.tgz' *;cd '${WORKSPACE}'"
-                        sh "./backup.sh '${WORKSPACE}/recipes.tgz'"
+                        sh "./backup.sh '/mnt/k8s/recipes'"
                         archiveArtifacts allowEmptyArchive: true, artifacts: 'recipes.tgz'
                         loadIfExists './status.groovy'
                    }
                 }
                 stage ('Backup Versions') {
                     steps {
-                        sh "cd /mnt/k8s/versions;tar czf '${WORKSPACE}/versions.tgz' *;cd '${WORKSPACE}'"
-                        sh "./backup.sh '${WORKSPACE}/versions.tgz'"
+                        sh "./backup.sh '/mnt/k8s/versions'"
                         archiveArtifacts allowEmptyArchive: true, artifacts: 'versions.tgz'
                         loadIfExists './status.groovy'
                    }
                 }
                 stage ('Backup Web') {
                     steps {
-                        sh "cd /mnt/k8s/web;tar czf '${WORKSPACE}/web.tgz' *;cd '${WORKSPACE}'"
-                        sh "./backup.sh '${WORKSPACE}/web.tgz'"
+                        sh "./backup.sh '/mnt/k8s/web'"
                         archiveArtifacts allowEmptyArchive: true, artifacts: 'web.tgz'
                         loadIfExists './status.groovy'
                    }
                 }
                 stage ('Backup Heros') {
                     steps {
-                        sh "cd /mnt/k8s/stormshot;tar czf '${WORKSPACE}/stormshot.tgz' *;cd '${WORKSPACE}'"
-                        sh "./backup.sh '${WORKSPACE}/stormshot.tgz'"
+                        sh "./backup.sh '/mnt/k8s/stormshot'"
                         archiveArtifacts allowEmptyArchive: true, artifacts: 'stormshot.tgz'
                         loadIfExists './status.groovy'
                    }
                 }
                 stage ('Backup Money') {
                     steps {
-                        sh "cd /mnt/k8s/money;tar czf '${WORKSPACE}/money.tgz' *;cd '${WORKSPACE}'"
-                        sh "./backup.sh '${WORKSPACE}/money.tgz'"
+                        sh "./backup.sh '/mnt/k8s/money'"
                         archiveArtifacts allowEmptyArchive: true, artifacts: 'money.tgz'
                         loadIfExists './status.groovy'
                    }

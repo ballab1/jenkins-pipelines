@@ -15,6 +15,7 @@
 #    /media/ext3-d/docker-registry /var/lib/docker-registry   none    bind
 
 
+#----------------------------------------------------------------------------
 function removeEmptyTags()
 {
     local dir=${1:?}
@@ -53,7 +54,7 @@ function removeEmptyTags()
     done < <(find "$dir" -mindepth 1 -maxdepth 1 -type d | sort)
 }
 
-#############################################################################################
+#----------------------------------------------------------------------------
 function kafkaJson()
 {
     echo -n '{ "blocksAtStart": '$blocksAtStart', '
@@ -64,7 +65,7 @@ function kafkaJson()
     echo
 }
 
-#############################################################################################
+#----------------------------------------------------------------------------
 function show_summary()
 {
     echo
@@ -84,22 +85,27 @@ function show_summary()
         printf '    %s\n' "${removedRepos[@]}"
     fi
     echo
-    [ "$blocksRecovered" -eq 0 ] || updateStatus "addBadge('warning.gif','${blocksRecovered} blocks recovered')"      
+    [ "$blocksRecovered" -eq 0 ] || updateStatus 'warning.gif' "${blocksRecovered} blocks recovered"
 }
 
-#############################################################################################
+#----------------------------------------------------------------------------
 function updateStatus()
 {
-    local -r text=${1:?}
-    local -r force=${2:-}
+    local -r badge=${1:?}
+    local -r text=${2:?}
+    local -r force=${3:-}
 
-    [ -z "${text:-}" ] && return 0
-    local job_status="${WORKSPACE:-.}/status.groovy"
-    if [ "${force:-}" ] || [ ! -s "$job_status" ]; then
-        (echo "manager.$text"; echo "currentBuild.result = 'UNSTABLE'") > "$job_status"
+    if [ ! -s "$JOB_STATUS" ] || [ "${force:-}" ]; then
+        echo 'Updating status.groovy' >&2
+        {
+            echo "$badge"
+            echo "$text"
+            echo 'UNSTABLE'
+         } > "$JOB_STATUS"
     fi
     return 0
-} 
+}
+
 #############################################################################################
 
 # Use the Unofficial Bash Strict Mode
@@ -111,6 +117,7 @@ IFS=$'\n\t'
 set +o verbose
 #set +o xtrace
 export TERM=linux
+export JOB_STATUS="${WORKSPACE:-.}/status.groovy"
 declare LOG="${1:-summary.log}"
 :> "$LOG"
 
