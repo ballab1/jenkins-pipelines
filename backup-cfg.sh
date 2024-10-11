@@ -23,7 +23,7 @@ function checkFiles()
 
         local -a dstFiles
         mapfile -t dstFiles < <(find . -type f | sort)
-    
+
         if [ "${#srcFiles[*]}" -ne "${#dstFiles[*]}" ];then
             status=1
         else
@@ -44,14 +44,14 @@ function checkFiles()
 
     echo
     echo "${NODENAME}: Creating backup of files"
-    sudo tar -cvzf "${WORKSPACE_DIR}/${tarFile}" "${srcFiles[@]}" &> "${WORKSPACE_DIR}/${tarFile//.tgz}.log" ||:
+    sudo tar -cvzf "${WORKSPACE}/${tarFile}" "${srcFiles[@]}" &> "${WORKSPACE}/${tarFile//.tgz}.log" ||:
 
-    [ "$(sha256sum "${WORKSPACE_DIR}/${tarFile}" | cut -d ' ' -f 1)" = "$(sha256sum "${BACKUP_DIR}/$tarFile" | cut -d ' ' -f 1)" ] && return 0
+    [ "$(sha256sum "${WORKSPACE}/${tarFile}" | cut -d ' ' -f 1)" = "$(sha256sum "${BACKUP_DIR}/$tarFile" | cut -d ' ' -f 1)" ] && return 0
 
     return 1
 }
 
-#---------------------------------------------------------------------------- 
+#----------------------------------------------------------------------------
 function lastBackup() {
 
     local -r tarFile="${1:?}"
@@ -63,7 +63,7 @@ function lastBackup() {
     fi
 }
 
-#---------------------------------------------------------------------------- 
+#----------------------------------------------------------------------------
 function main() {
 
     local -r nodeName="${1:?}"
@@ -83,7 +83,7 @@ function main() {
             saveBackup "$tarfile"
         fi
         echo
- } | tee "${WORKSPACE_DIR}/${nodeName}.log"
+ } | tee "${WORKSPACE}/${nodeName}.log"
     return 0
 }
 
@@ -92,14 +92,20 @@ function onexit()
 {
     echo
     [ -d "$TEMP_DIR" ] && rm -rf "$TEMP_DIR"
+    if [ -s "$JOB_STATUS" ]; then
+      echo '========================================================='
+      cat "$JOB_STATUS"
+      echo '========================================================='
+    fi
+    echo
     return 0
 }
 
-#---------------------------------------------------------------------------- 
+#----------------------------------------------------------------------------
 function saveBackup() {
 
     local -r filename="${1:?}"
-    local -r base="${filename%.*}" 
+    local -r base="${filename%.*}"
 
     :> "$JOB_STATUS"
     sudo mkdir -p "${BACKUP_DIR}/$base"
@@ -107,7 +113,7 @@ function saveBackup() {
     local newFile="${BACKUP_DIR}/${base}/${base}.$(date +"%Y%m%d").${filename##*.}"
     sudo cp "$filename" "$newFile"
     echo "${NODENAME}: saved $newFile"
-    updateStatus "addBadge('completed.gif','${NODENAME}: backed up to $newFile')"
+    updateStatus 'completed.gif' "${NODENAME}: backed up to ${newFile}"
 
     [ -e "${BACKUP_DIR}/$filename" ] && sudo rm "${BACKUP_DIR}/$filename"
     sudo ln -s "$newFile" "${BACKUP_DIR}/$filename"
@@ -119,7 +125,7 @@ function saveBackup() {
     while [ $(( i-- )) -ge "$MAX_FILES" ]; do
         echo "${NODENAME}: deleting ${files[$i]}"
         sudo rm "${files[$i]}"
-        updateStatus "addBadge('completed.gif','${NODENAME}: backed up to $newFile\\nremoved ${files[$i]}')" 'force'
+        updateStatus 'completed.gif' "${NODENAME}: backed up to $newFile\\nremoved ${files[$i]}" 'force'
     done
     return 0
 }
@@ -127,16 +133,21 @@ function saveBackup() {
 #----------------------------------------------------------------------------
 function updateStatus()
 {
-    local -r text=${1:?}
-    local -r force=${2:-}
+    local -r badge=${1:?}
+    local -r text=${2:?}
+    local -r force=${3:-}
 
-    [ -z "${text:-}" ] && return 0
-    if [ "${force:-}" ] || [ ! -s "$JOB_STATUS" ]; then
-        (echo "manager.$text"; echo "currentBuild.result = 'UNSTABLE'") > "$JOB_STATUS"
+    if [ ! -s "$JOB_STATUS" ] || [ "${force:-}" ]; then
+        echo 'Updating status.groovy' >&2
+        {
+            echo "$badge"
+            echo "$text"
+            echo 'UNSTABLE'
+         } > "$JOB_STATUS"
     fi
     return 0
 }
- 
+
 ##########################################################################################################
 
 set -o errtrace
@@ -144,13 +155,12 @@ set -o errtrace
 declare -ri MAX_FILES=${MAX_FILES:-10}
 declare -r BACKUP_DIR="${BACKUP_DIR:-/home/bobb/src}"
 declare -r PROGRAM_DIR="$(dirname "${BASH_SOURCE[0]}")"
-declare -r WORKSPACE_DIR="${WORKSPACE:-pwd}"
 declare -r TEMP_DIR='/tmp/backups'
 
 export TERM=linux
 declare -r NODENAME=$(hostname -f)
-export RESULTS="${WORKSPACE_DIR}/${NODENAME}.txt" 
-export JOB_STATUS=${WORKSPACE_DIR}/status.groovy 
+export RESULTS="${WORKSPACE:-.}/${NODENAME}.txt"
+export JOB_STATUS=${WORKSPACE:-.}/status.groovy
 
 trap onexit ERR
 trap onexit INT

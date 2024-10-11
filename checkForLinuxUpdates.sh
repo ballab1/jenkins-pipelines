@@ -43,7 +43,7 @@ function latestUpdates()
     text="$(sudo /usr/bin/apt-get update -y 2>"$ERRORS")" && status=$? || status=$?
     echo "$text"
     if [ $status -ne 0 ]; then
-        updateStatus "addBadge('error.gif','''${NODENAME}: apt-get update >> ${ERRORS}''')"
+        updateStatus 'error.gif' "${NODENAME}: apt-get update >> ${ERRORS}"
         return $status
     fi
 
@@ -53,7 +53,7 @@ function latestUpdates()
     # sudo apt-get --with-new-pkgs upgrade"
     echo "$text"
     if [ $status -ne 0 ]; then
-        updateStatus "addBadge('error.gif','''${NODENAME}: apt-get dist-upgrade >> ${ERRORS}''')"
+        updateStatus 'error.gif' "${NODENAME}: apt-get dist-upgrade >> ${ERRORS}"
         return $status
     fi
 
@@ -64,14 +64,14 @@ function latestUpdates()
         local -i changes=$(echo " $msg" | sed 's| and|,|' | awk '{print $0}' RS=',' | awk '{print $1}' | jq -s '.[0:3]|add') ||:
         if [ "$changes" -gt 0 ]; then
            msg="$(extractMsg "$msg")"
-           [ "$msg" ] && updateStatus "addBadge('completed.gif','''${NODENAME}: ${msg}''')"
+           [ "$msg" ] && updateStatus 'completed.gif' "${NODENAME}: ${msg}"
         fi
     fi
 
     # shellcheck disable=SC2063
     if grep -s '*** System restart required ***' <<< "$text"; then
         :> "$JOB_STATUS"
-        updateStatus "addBadge('warning.gif','${NODENAME}: *** System restart required ***')"
+        updateStatus 'warning.gif' "${NODENAME}: *** System restart required ***"
         return $status
     fi
 
@@ -97,7 +97,7 @@ function main()
         # shellcheck disable=SC2086,SC2155
         local updates="$(sudo apt list --upgradable)"
         if [ "$(echo "$updates:-}" | wc -l)" -gt 1 ];then
-# need to look for 'you should consider rebooting.'        
+# need to look for 'you should consider rebooting.'
             echo "sudo apt full-upgrade -y"
             sudo apt full-upgrade -y
             echo "sudo apt autoremove"
@@ -128,6 +128,7 @@ function onexit()
       cat "$JOB_STATUS"
       echo '========================================================='
     fi
+    echo
     return 0
 }
 
@@ -149,7 +150,7 @@ function removeLocks()
         sudo rm /var/lib/apt/lists/lock
         sudo rm /var/cache/apt/archives/lock
         sudo rm /var/lib/dpkg/lock*
-        updateStatus "addErrorBadge('${NODENAME}: removed locks')"
+        updateStatus 'error.gif' "${NODENAME}: removed locks"
     fi
 }
 
@@ -199,7 +200,7 @@ function report()
         :> "$JOB_STATUS"
         cat "$fl"
         fl="$(basename "$fl")"
-        updateStatus "addWarningBadge('''${NODENAME}: ${fl//-/ }''')"
+        updateStatus 'warning.gif' "${NODENAME}: ${fl//-/ }"
     done
 }
 
@@ -229,16 +230,24 @@ function showWhatNeedsDone()
     echo "$text"
     # shellcheck disable=SC2155
     local txt="$(grep 'New release' <<< "$text" ||:)"
-    [ -z "$txt" ] || updateStatus "addBadge('yellow.gif','''${NODENAME}: ${txt}''')"
+    [ -z "$txt" ] || updateStatus 'yellow.gif' "${NODENAME}: ${txt}"
 }
 
 #----------------------------------------------------------------------------
 function updateStatus()
 {
-    local -r text=${1:?}
+    local -r badge=${1:?}
+    local -r text=${2:?}
+    local -r force=${3:-}
 
-    [ -z "${text:-}" ] && return 0
-    [ -s "$JOB_STATUS" ] || (echo "manager.$text"; echo "currentBuild.result = 'UNSTABLE'") > "$JOB_STATUS"
+    if [ ! -s "$JOB_STATUS" ] || [ "${force:-}" ]; then
+        echo 'Updating status.groovy' >&2
+        {
+            echo "$badge"
+            echo "$text"
+            echo 'UNSTABLE'
+         } > "$JOB_STATUS"
+    fi
     return 0
 }
 

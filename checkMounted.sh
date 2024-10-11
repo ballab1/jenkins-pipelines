@@ -12,8 +12,8 @@ function main()
        echo 'STALE MOUNT detected'
        updateStatus 'STALE MOUNT detected'
     else
-       echo "${MOUNTPATH} is not mounted" 
-       updateStatus "${MOUNTPATH} is not mounted" 
+       echo "${MOUNTPATH} is not mounted"
+       updateStatus "${MOUNTPATH} is not mounted"
     fi
     exit 127
 }
@@ -22,31 +22,36 @@ function main()
 function onexit()
 {
     echo
-    echo
     if [ -s "$JOB_STATUS" ]; then
       echo '========================================================='
       cat "$JOB_STATUS"
       echo '========================================================='
     fi
+    echo
     return 0
 }
- 
+
 #----------------------------------------------------------------------------
 function updateStatus()
 {
     local -r text=${1:?}
+    local -r force=${2:-}
 
-    [ -z "${text:-}" ] && return 0
-    [ -s "$JOB_STATUS" ] || return 0
-
-    echo "manager.$text"; echo "currentBuild.result = 'FAILED'" > "$JOB_STATUS"
+    if [ ! -s "$JOB_STATUS" ] || [ "${force:-}" ]; then
+        echo 'Updating status.groovy' >&2
+        {
+            echo 'error.gif'
+            echo "$text"
+            echo 'FAILED'
+         } > "$JOB_STATUS"
+    fi
+    return 0
 }
 
 ##########################################################################################################
 
 set -o errtrace
 declare -r MOUNTPATH="${1:?}"
-
 export TERM=linux
 export JOB_STATUS="${WORKSPACE:-.}/status.groovy"
 
