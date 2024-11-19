@@ -51,13 +51,6 @@ pipeline {
                         loadIfExists './status.groovy'
                    }
                 }
-                stage ('Backup Money') {
-                    steps {
-                        sh "./backup.sh '/mnt/k8s/money'"
-                        archiveArtifacts allowEmptyArchive: true, artifacts: 'money.tgz'
-                        loadIfExists './status.groovy'
-                   }
-                }
             }
         }
     }
