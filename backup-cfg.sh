@@ -10,7 +10,7 @@ function checkFiles()
     local -a srcFiles=()
     while read -r file; do
         [ -e "$file" ] || continue
-        [ -e "${file}/.git" ] || continue
+        [ -e "${file}/.git" ] && continue
         srcFiles+=( $(sudo find "$file" -type f | grep -v '.git') )
     done < "${PROGRAM_DIR}/tarfiles.lst"
 
