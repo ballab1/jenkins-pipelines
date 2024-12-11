@@ -14,6 +14,33 @@
 #fstab:
 #    /media/ext3-d/docker-registry /var/lib/docker-registry   none    bind
 
+#----------------------------------------------------------------------------
+function currate_images() {
+
+    # define registries and #images we keep for each
+    local -A registries=(
+      ['docker.io']=6
+      ['i386-ubuntu']=2
+      ['docker.redpanda.com']=4
+      ['gcr.io']=4
+      ['quay.io']=4
+      ['registry.k8s.io']=4
+    )
+
+    (cd bin; git-crypt unlock /home/bobb/src/keys/work-stuff.key)
+    unset USER
+    unset USERNAME
+    ./updateBin.sh
+    export __SECRETS_FILE=/home/bobb/.inf/secret.properties
+    for registry in "${!registries[@]}"; do
+        echo
+	echo "currating images in ${registry}"
+    	./bin/docker-utilities delete \
+            --max "${registries[$registry]}" \
+            --no_confirm_delete \
+            "${registry}"'/.*' ||:
+    done
+}
 
 #----------------------------------------------------------------------------
 function removeEmptyTags()
@@ -39,17 +66,17 @@ function removeEmptyTags()
         if [ -d "${dir}/_manifests" ]; then
             [ -d "${dir}/_manifests/revisions" ] && [ -d "${dir}/_manifests/tags" ] || continue
             [ $(ls -1A "${dir}/_manifests/tags" | wc -l) -eq 0 ] || continue
-            rm -rf "${dir}/_manifests"
+            sudo rm -rf "${dir}/_manifests"
         fi
 
         # remove this folder
-        rm -rf "${dir}/_layers"
-        rm -rf "${dir}/_uploads"
+        sudo rm -rf "${dir}/_layers"
+        sudo rm -rf "${dir}/_uploads"
         [ $(ls -1A "${dir}/" | wc -l) -eq 0 ] || continue
 
         echo "$dir : deleted"
         removedRepos+=( ${dir:2} )
-        rmdir "${dir}"
+        sudo rmdir "${dir}"
 
     done < <(find "$dir" -mindepth 1 -maxdepth 1 -type d | sort)
 }
@@ -66,11 +93,37 @@ function kafkaJson()
 }
 
 #----------------------------------------------------------------------------
+function run_garbage_collection() {
+
+    local -i blocksAtStart blocksAfterGC blocksAfterRemovingEmptyTags
+    local -a removedRepos=()
+
+    blocksAtStart=$(df /dev/sdb1 | sed '1d' | awk '{print $4}')
+
+    echo
+    echo
+    echo
+    sudo /usr/bin/docker-registry garbage-collect /etc/docker/registry/config.yml
+    blocksAfterGC=$(df /dev/sdb1 | sed '1d' | awk '{print $4}')
+
+    echo
+    echo
+    pushd '/var/lib/docker-registry/docker/registry/v2/repositories'
+    removeEmptyTags '.'
+    popd
+    blocksAfterRemovingEmptyTags=$(df /dev/sdb1 | sed '1d' | awk '{print $4}')
+
+    show_summary | tee "$LOG"
+    chmod 666 "$LOG"
+}
+
+#----------------------------------------------------------------------------
 function show_summary()
 {
     echo
     echo
-    df
+    echo 'Filesystem                         1K-blocks       Used  Available Use% Mounted on'
+    df | grep -E '(^/dev|Registry)'
 
     local -i blocksRecovered=$(( blocksAfterRemovingEmptyTags - blocksAtStart ))
     echo
@@ -118,32 +171,15 @@ set +o verbose
 #set +o xtrace
 export TERM=linux
 export JOB_STATUS="${WORKSPACE:-.}/status.groovy"
-declare LOG="${1:-summary.log}"
+declare LOG="${2:-summary.log}"
 :> "$LOG"
 
-# ensure this script is run as root
-if [[ $EUID != 0 ]]; then
-  sudo $0
-  exit
-fi
-
-declare -i blocksAtStart blocksAfterGC blocksAfterRemovingEmptyTags
-declare -a removedRepos=()
-
-blocksAtStart=$(df /dev/sdb1 | sed '1d' | awk '{print $4}')
-
-echo
-echo
-echo
-/usr/bin/docker-registry garbage-collect /etc/docker/registry/config.yml
-blocksAfterGC=$(df /dev/sdb1 | sed '1d' | awk '{print $4}')
-
-echo
-echo
-pushd '/var/lib/docker-registry/docker/registry/v2/repositories'
-removeEmptyTags '.'
-popd
-blocksAfterRemovingEmptyTags=$(df /dev/sdb1 | sed '1d' | awk '{print $4}')
-
-show_summary | tee "$LOG"
-chmod 666 "$LOG"
+case "${1:?}" in
+   currate_images)
+     "$1";;
+   run_garbage_collection)
+     "$1";;
+   *)
+     echo 'invalid option specified'
+     exit 1;;
+esac

@@ -22,17 +22,9 @@ pipeline {
       agent { label 'docker' }
       steps {
         ansiColor('xterm') {
-          checkout scm
           dir(WORKSPACE) {
-              sh '''
-                 (cd bin;git-crypt unlock /home/bobb/src/keys/work-stuff.key)
-                 unset USER; unset USERNAME
-                 ./updateBin.sh
-                 ./docker-utilities delete --max 6 --no_confirm_delete 'alpine/.*' ||:
-                 ./docker-utilities delete --max 3 --no_confirm_delete 'docker.io/.*' ||:
-                 ./docker-utilities delete --max 3 --no_confirm_delete 'quay.io/.*' ||:
-                 ./docker-utilities delete --max 2 --no_confirm_delete 'i386-ubuntu/.*' ||:
-               '''
+            sh './clean-docker-registry.sh currate_images'
+            archiveArtifacts allowEmptyArchive: true, artifacts: 'debug.log'
           }
         }
       }
@@ -41,11 +33,9 @@ pipeline {
       agent { label 'ubuntu-s2' }
       steps {
         ansiColor('xterm') {
-          checkout scm
           dir(WORKSPACE) {
-                sh "sudo ./clean-docker-registry.sh"
-                loadIfExists './status.groovy'
-//                sh "( df | grep '/mnt/usbdrive' >> ${SUMMARY} )"
+            sh './clean-docker-registry.sh run_garbage_collection ' + SUMMARY
+            loadIfExists './status.groovy'
             archiveArtifacts allowEmptyArchive: true, artifacts: SUMMARY
           }
         }
