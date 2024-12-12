@@ -24,7 +24,6 @@ pipeline {
         ansiColor('xterm') {
           dir(WORKSPACE) {
             sh './clean-docker-registry.sh currate_images'
-            archiveArtifacts allowEmptyArchive: true, artifacts: 'debug.log'
           }
         }
       }
@@ -36,7 +35,7 @@ pipeline {
           dir(WORKSPACE) {
             sh './clean-docker-registry.sh run_garbage_collection ' + SUMMARY
             loadIfExists './status.groovy'
-            archiveArtifacts allowEmptyArchive: true, artifacts: SUMMARY
+            archiveArtifacts allowEmptyArchive: true, artifacts: '*.log' 
           }
         }
       }

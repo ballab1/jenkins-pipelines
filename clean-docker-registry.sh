@@ -103,7 +103,7 @@ function run_garbage_collection() {
     echo
     echo
     echo
-    sudo /usr/bin/docker-registry garbage-collect /etc/docker/registry/config.yml
+    sudo /usr/bin/docker-registry garbage-collect /etc/docker/registry/config.yml > "$COLLECTION_LOG"
     blocksAfterGC=$(df /dev/sdb1 | sed '1d' | awk '{print $4}')
 
     echo
@@ -120,6 +120,8 @@ function run_garbage_collection() {
 #----------------------------------------------------------------------------
 function show_summary()
 {
+    echo
+    grep 'blobs marked' "$COLLECTION_LOG"
     echo
     echo
     echo 'Filesystem                         1K-blocks       Used  Available Use% Mounted on'
@@ -171,7 +173,8 @@ set +o verbose
 #set +o xtrace
 export TERM=linux
 export JOB_STATUS="${WORKSPACE:-.}/status.groovy"
-declare LOG="${2:-summary.log}"
+declare -r LOG="${2:-summary.log}"
+declare -r COLLECTION_LOG='garbage_collection.log'
 :> "$LOG"
 
 case "${1:?}" in
