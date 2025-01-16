@@ -11,23 +11,21 @@
   "ubuntu-s3": [
     "/home/bobb/.bin/utilities",
     "/home/bobb/deploy-kafka/bin",
-    "/home/bobb/production/bin"
-  ],
-  "ubuntu-s4": [
-    "/home/bobb/.bin/utilities",
+    "/home/bobb/production/bin",
     "/home/bobb/GIT/support/bin",
     "/home/bobb/GIT/support/build_container/build/usr/local/bin",
     "/home/bobb/GIT/pipelines/bin",
     "/home/bobb/GIT/work-stuff",
-    "/home/bobb/GIT/utilities",
-    "/home/bobb/deploy-nagios/bin"
+    "/home/bobb/GIT/utilities"
+  ],
+  "ubuntu-s4": [
+    "/home/bobb/.bin/utilities"
   ],
   "ubuntu-s5": [
     "/home/bobb/.bin/utilities"
   ],
   "ubuntu-s6": [
-    "/home/bobb/.bin/utilities",
-    "/home/bobb/elk-deploy/bin"
+    "/home/bobb/.bin/utilities"
   ],
   "ubuntu-s7": [
     "/home/bobb/.bin/utilities",
