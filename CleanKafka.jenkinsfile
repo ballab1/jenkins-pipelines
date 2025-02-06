@@ -20,20 +20,20 @@ pipeline {
     stage ('stop all') {
       failFast true
       parallel {
-        stage ('ubuntu-s3') {
-          agent { label 'ubuntu-s3' }
+        stage ('s3.ubuntu.home') {
+          agent { label 's3.ubuntu.home' }
           steps {
             sh "sudo find ${params.TARGET_DIR} -mindepth 1 -maxdepth 1 -name '*log*'  ! -mtime 10 -delete"
           }
         }
-        stage ('ubuntu-s7') {
-          agent { label 'ubuntu-s7' }
+        stage ('s7.ubuntu.home') {
+          agent { label 's7.ubuntu.home' }
           steps {
             sh "sudo find ${params.TARGET_DIR} -mindepth 1 -maxdepth 1 -name '*log*'  ! -mtime 10 -delete"
           }
         }
-        stage ('ubuntu-s8') {
-          agent { label 'ubuntu-s8' }
+        stage ('s8.ubuntu.home') {
+          agent { label 's8.ubuntu.home' }
           steps {
             sh "sudo find ${params.TARGET_DIR} -mindepth 1 -maxdepth 1 -name '*log*'  ! -mtime 10 -delete"
           }

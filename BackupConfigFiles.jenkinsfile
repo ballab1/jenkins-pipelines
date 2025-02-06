@@ -12,7 +12,7 @@ def pipelineAction()  {
         catchError(buildResult: 'UNSTABLE', stageResult: 'UNSTABLE') {
             if (nodeName != 'raspberry') {
                 sh './checkMounted.sh /mnt/ubuntu'
-                sh "./backup-cfg.sh '${nodeName}'"
+                sh "./backup.sh '${nodeName}' '${nodeName}'"
             }
         }
         stash allowEmpty: true, includes: "${nodeName}.log", name: nodeName

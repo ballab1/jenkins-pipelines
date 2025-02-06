@@ -7,7 +7,7 @@ import groovy.transform.Field
 
 
 pipeline {
-    agent { label 'ubuntu-s3' }
+    agent { label 's3.ubuntu.home' }
     options {
         buildDiscarder(logRotator(numToKeepStr: '20'))
         disableConcurrentBuilds()
@@ -25,29 +25,29 @@ pipeline {
             parallel {
                 stage ('Backup Recipes') {
                     steps {
-                        sh "./backup.sh '/mnt/k8s/recipes'"
-                        archiveArtifacts allowEmptyArchive: true, artifacts: 'recipes.tgz'
+                        sh "./backup.sh 'recipes' '/mnt/k8s/recipes' "
+                        archiveArtifacts allowEmptyArchive: true, artifacts: 'recipes*'
                         loadIfExists './status.groovy'
                    }
                 }
                 stage ('Backup Versions') {
                     steps {
-                        sh "./backup.sh '/mnt/k8s/versions'"
-                        archiveArtifacts allowEmptyArchive: true, artifacts: 'versions.tgz'
+                        sh "./backup.sh 'versions' '/mnt/k8s/versions'"
+                        archiveArtifacts allowEmptyArchive: true, artifacts: 'versions*'
                         loadIfExists './status.groovy'
                    }
                 }
                 stage ('Backup Web') {
                     steps {
-                        sh "./backup.sh '/mnt/k8s/web'"
-                        archiveArtifacts allowEmptyArchive: true, artifacts: 'web.tgz'
+                        sh "./backup.sh 'web' '/mnt/k8s/web'"
+                        archiveArtifacts allowEmptyArchive: true, artifacts: 'web*'
                         loadIfExists './status.groovy'
                    }
                 }
                 stage ('Backup Heros') {
                     steps {
-                        sh "./backup.sh '/mnt/k8s/stormshot'"
-                        archiveArtifacts allowEmptyArchive: true, artifacts: 'stormshot.tgz'
+                        sh "./backup.sh 'stormshot' '/mnt/k8s/stormshot'"
+                        archiveArtifacts allowEmptyArchive: true, artifacts: 'stormshot*'
                         loadIfExists './status.groovy'
                    }
                 }

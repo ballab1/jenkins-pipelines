@@ -2,7 +2,7 @@
 @Library('jenkins-sharedlibs')_
 
 processInParallel (
-    agent: 'ubuntu-s3',
+    agent: 's3.ubuntu.home',
     items: [ 'photoprism', 'zen' ],
     process: { tardir, body -> 
         fixedNodeStep(tardir, body)

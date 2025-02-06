@@ -1,4 +1,4 @@
-node('ubuntu-s3') {
+node('s3.ubuntu.home') {
     timestamps {
         stage ('Perform Update') {
             ws {

@@ -1,7 +1,7 @@
 @Library('jenkins-sharedlibs')_
 
 pipeline {
-    agent { label 'ubuntu-s6' }
+    agent { label 's6.ubuntu.home' }
     options {
         buildDiscarder(logRotator(numToKeepStr: '20'))
         disableConcurrentBuilds()

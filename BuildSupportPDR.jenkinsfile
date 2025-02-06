@@ -8,7 +8,7 @@ script {
 }
 
 pipeline {
-    agent { label 'ubuntu-s3' }
+    agent { label 's3.ubuntu.home' }
     options {
         buildDiscarder(logRotator(numToKeepStr: '20'))
         disableConcurrentBuilds()

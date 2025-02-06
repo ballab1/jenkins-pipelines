@@ -12,13 +12,13 @@ pipeline {
   }
   parameters {
     string(name: 'CONTAINER_TAG', defaultValue: 'latest', description: 'version of nagios containers to use')
-    string(name: 'SLAVE', defaultValue: 'ubuntu-s4', description: 'label of slave on which nagios should run')
+    string(name: 'SLAVE', defaultValue: 's4.ubuntu.home', description: 'label of slave on which nagios should run')
     string(name: 'TARGET_DIR', defaultValue: '/home/bobb/nagios-deploy', description: 'target directory for config files')
   }
 
   stages {
-    stage ('ubuntu-s4') {
-      agent { label 'ubuntu-s4' }
+    stage ('s4.ubuntu.home') {
+      agent { label 's4.ubuntu.home' }
       steps {
         ansiColor('xterm') {
           withEnv(['CFG_USER_SECRETS=/home/bobb/.inf']) {
