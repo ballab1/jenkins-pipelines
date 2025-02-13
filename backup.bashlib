@@ -36,6 +36,7 @@ function expandFile() {
             sha256sum "$f" | cut -d ' ' -f 1
             echo "$f" >> "$filelist"
         done < <(tar xvzf "$file")
+
      } | sha256sum | cut -d ' ' -f 1
 }
 

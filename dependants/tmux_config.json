@@ -1,29 +1,29 @@
 {
-  "raspberry": [
+  "pi.ubuntu.home": [
     "/home/bobb/.tmux"
   ],
-  "ubuntu-s1": [
+  "s1.ubuntu.home": [
     "/home/bobb/.tmux"
   ],
-  "ubuntu-s2": [
+  "s2.ubuntu.home": [
     "/home/bobb/.tmux"
   ],
-  "ubuntu-s3": [
+  "s3.ubuntu.home": [
     "/home/bobb/.tmux"
   ],
-  "ubuntu-s4": [
+  "s4.ubuntu.home": [
     "/home/bobb/.tmux"
   ],
-  "ubuntu-s5": [
+  "s5.ubuntu.home": [
     "/home/bobb/.tmux"
   ],
-  "ubuntu-s6": [
+  "s6.ubuntu.home": [
     "/home/bobb/.tmux"
   ],
-  "ubuntu-s7": [
+  "s7.ubuntu.home": [
     "/home/bobb/.tmux"
   ],
-  "ubuntu-s8": [
+  "s8.ubuntu.home": [
     "/home/bobb/.tmux"
   ]
 }

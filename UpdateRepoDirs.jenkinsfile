@@ -31,7 +31,7 @@ def prepareNodeStage(String host) {
       sh '''
             hostname
             ./updateBin.sh
-            ./updateWorkspace.sh  ''' + host + '''
+            ./syncDirInstances.sh  ''' + host + '''
          '''
       stash name: host, allowEmpty: true, includes: '*.inf'
       deleteDir()

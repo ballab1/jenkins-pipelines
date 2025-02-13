@@ -1,14 +1,14 @@
 {
-  "raspberry": [
+  "pi.ubuntu.home": [
     "/home/bobb/.bin/utilities/bashlib"
   ],
-  "ubuntu-s1": [
+  "s1.ubuntu.home": [
     "/home/bobb/.bin/utilities/bashlib"
   ],
-  "ubuntu-s2": [
+  "s2.ubuntu.home": [
     "/home/bobb/.bin/utilities/bashlib"
   ],
-  "ubuntu-s3": [
+  "s3.ubuntu.home": [
     "/home/bobb/.bin/utilities/bashlib",
     "/home/bobb/deploy-kafka/bin/bashlib",
     "/home/bobb/production/bin/bashlib",
@@ -17,20 +17,20 @@
     "/home/bobb/GIT/utilities/bashlib",
     "/home/bobb/GIT/pipelines/bin/bashlib"
   ],
-  "ubuntu-s4": [
+  "s4.ubuntu.home": [
     "/home/bobb/.bin/utilities/bashlib"
   ],
-  "ubuntu-s5": [
+  "s5.ubuntu.home": [
     "/home/bobb/.bin/utilities/bashlib"
   ],
-  "ubuntu-s6": [
+  "s6.ubuntu.home": [
     "/home/bobb/.bin/utilities/bashlib"
   ],
-  "ubuntu-s7": [
+  "s7.ubuntu.home": [
     "/home/bobb/.bin/utilities/bashlib",
     "/home/bobb/deploy-kafka/bin/bashlib"
   ],
-  "ubuntu-s8": [
+  "s8.ubuntu.home": [
     "/home/bobb/.bin/utilities/bashlib",
     "/home/bobb/deploy-kafka/bin/bashlib"
   ]

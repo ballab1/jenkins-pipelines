@@ -11,7 +11,7 @@ function process()
     echo "$(hostname):"
     local moduleDir
     for moduleDir in $(< "$dirsFile"); do
-        processDir "$moduleDir" "${report:-}" "${recurse:-}" && stat=$? || stat=$?
+        processDir "$moduleDir" "$report" "$recurse" && stat=$? || stat=$?
         [ $stat -eq 0 ] || status=$stat
     done
     return $status
@@ -30,12 +30,12 @@ function processDir()
     local -r myDir="$(pwd)"
     cd "$dir"
     if [ "$report" = 'false' ]; then
-        updateGitDir "$moduleDir" "${recurse:-}" && status=$? || status=$?
+        updateGitDir "$moduleDir" "$recurse" && status=$? || status=$?
     fi
     if [ "$recurse" != 'false' ]; then
         local moduleDir
         while read -r moduleDir; do
-            processDir "$moduleDir" "${report:-}" "${recurse:-}" && stat=$? || stat=$?
+            processDir "$moduleDir" "$report" "$recurse" && stat=$? || stat=$?
             [ $stat -eq 0 ] || status=$stat
         done < <(git submodule status --recursive | awk '{print $2}')
     fi
@@ -47,7 +47,7 @@ function processDir()
 #----------------------------------------------------------------------------------------------
 function run()
 {
-    [ "${DEBUG:-0}" -ne 0 ] && (echo -e "${grey}$(printf '%s ' "$@")$reset" >&2)
+    [ "${DEBUG:-0}" -ne 0 ] && (echo -e "${GREY}$(printf '%s ' "$@")$RESET" >&2)
     eval $@ > /dev/null
 }
 
@@ -77,8 +77,8 @@ function updateGitDir()
     else
         run git checkout "$ref"
     fi
-    
-    
+
+
     # de-git-crypt
     if [ "$(grep -c 'git-crypt')" -gt 0 ]; then
         local repo="$(git remote -v |awk '{split($2, arr, "/"); sub(".git","",arr[3]);print arr[5]; exit}')"
@@ -90,9 +90,9 @@ function updateGitDir()
 
 #----------------------------------------------------------------------------------------------
 
-declare -r grey='\e[90m'
-declare -r white='\e[97m'
-declare -r reset='\e[0m'
+declare -r GREY='\e[90m'
+declare -r WHITE='\e[97m'
+declare -r RESET='\e[0m'
 declare -i status=0
 
 
