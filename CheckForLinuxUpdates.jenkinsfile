@@ -1,5 +1,6 @@
 @Library('jenkins-sharedlibs')_
 
+
 processInParallel (
     agent: 'built-in',
     items: activeNodes(),
@@ -8,9 +9,9 @@ processInParallel (
     },
     action: { nodeName ->
         timeout(90) {
-            sh './checkForLinuxUpdates.sh ' + nodeName
+            sh "./checkForLinuxUpdates.sh './status.${nodeName}.groovy' ${nodeName}"
         }
-        loadIfExists './status.groovy'
+        loadIfExists "./status.${nodeName}.groovy"
         archiveArtifacts allowEmptyArchive: true, artifacts: "*.txt"
     }
 )

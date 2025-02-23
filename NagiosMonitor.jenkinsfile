@@ -1,6 +1,8 @@
 
 @Library('jenkins-sharedlibs')_
 
+@Field String STATUS_MONITOR = './status.monitor.groovy'
+
 pipeline {
     agent {
         docker {

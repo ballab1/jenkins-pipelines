@@ -241,7 +241,7 @@ function updateStatus()
     local -r force=${3:-}
 
     if [ ! -s "$JOB_STATUS" ] || [ "${force:-}" ]; then
-        echo 'Updating status.groovy' >&2
+        echo "Updating $JOB_STATUS" >&2
         {
             echo "$badge"
             echo "$text"
@@ -254,13 +254,12 @@ function updateStatus()
 ##########################################################################################################
 
 set -o errtrace
-declare -r NODENAME=${1:-$(hostname -s)}
-shift
+declare -r JOB_STATUS="${1:?}" && shift
+declare -r NODENAME=${1:-$(hostname -s)} && shift
 
 export TERM=linux
 export RESULTS="${WORKSPACE:-.}/${NODENAME}.txt"
 export ERRORS="${WORKSPACE:-.}/${NODENAME}.errors.txt"
-export JOB_STATUS="${WORKSPACE:-.}/status.groovy"
 
 trap onexit ERR
 trap onexit INT

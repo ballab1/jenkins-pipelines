@@ -4,6 +4,11 @@ import groovy.transform.Field
 
 // Initialize here so it is still available in post block if build fails.
 @Field String WWW = '/home/bobb/production/workspace.production/www/'
+@Field String STATUS_MNT = './status.mnt..groovy'
+@Field String STATUS_RECIPES = './status.recipes.groovy'
+@Field String STATUS_VERSIONS = './status.versions.groovy'
+@Field String STATUS_WEB = './status.web.groovy'
+@Field String STATUS_HEROS = './status.heros.groovy'
 
 
 pipeline {
@@ -17,38 +22,38 @@ pipeline {
     stages {
         stage ('Check mount') {
             steps {
-                sh returnStatus: true, script: "./checkMounted.sh /mnt/k8s"
-                loadIfExists './status.groovy'
+                sh returnStatus: true, script: "./checkMounted.sh $STATUS_MNT /mnt/k8s"
+                loadIfExists STATUS_MNT
             }
         }
         stage ('workers') {
             parallel {
                 stage ('Backup Recipes') {
                     steps {
-                        sh "./backup.sh 'recipes' '/mnt/k8s/recipes' "
+                        sh "./backup.sh $STATUS_RECIPES 'recipes' '/mnt/k8s/recipes' "
                         archiveArtifacts allowEmptyArchive: true, artifacts: 'recipes*'
-                        loadIfExists './status.groovy'
+                        loadIfExists STATUS_RECIPES
                    }
                 }
                 stage ('Backup Versions') {
                     steps {
-                        sh "./backup.sh 'versions' '/mnt/k8s/versions'"
+                        sh "./backup.sh $STATUS_VERSIONS 'versions' '/mnt/k8s/versions'"
                         archiveArtifacts allowEmptyArchive: true, artifacts: 'versions*'
-                        loadIfExists './status.groovy'
+                        loadIfExists STATUS_VERSIONS
                    }
                 }
                 stage ('Backup Web') {
                     steps {
-                        sh "./backup.sh 'web' '/mnt/k8s/web'"
+                        sh "./backup.sh $STATUS_WEB 'web' '/mnt/k8s/web'"
                         archiveArtifacts allowEmptyArchive: true, artifacts: 'web*'
-                        loadIfExists './status.groovy'
+                        loadIfExists STATUS_WEB
                    }
                 }
                 stage ('Backup Heros') {
                     steps {
-                        sh "./backup.sh 'stormshot' '/mnt/k8s/stormshot'"
+                        sh "./backup.sh $STATUS_HEROS 'stormshot' '/mnt/k8s/stormshot'"
                         archiveArtifacts allowEmptyArchive: true, artifacts: 'stormshot*'
-                        loadIfExists './status.groovy'
+                        loadIfExists STATUS_HEROS
                    }
                 }
             }

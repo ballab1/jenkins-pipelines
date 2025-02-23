@@ -2,6 +2,7 @@ import groovy.transform.Field
 
 @Library('jenkins-sharedlibs')_
 
+@Field String STATUS_MNT = './status.nagios.groovy'
 @Field String ROOT = 'root'
 @Field String USER = 'bobb'
 
@@ -20,8 +21,8 @@ pipeline {
     stages {
         stage ('Check mount') {
             steps {
-                sh returnStatus: true, script: "./checkMounted.sh " + params.DESTINATION
-                loadIfExists './status.groovy'
+                sh returnStatus: true, script: "./checkMounted.sh $STATUS_MNT " + params.DESTINATION
+                loadIfExists STATUS_MNT
             }
         }
         stage ('Backup Registry') {

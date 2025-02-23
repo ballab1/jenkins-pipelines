@@ -152,7 +152,6 @@ function main() {
 
     [ ! -d "$WORKSPACE" ] && mkdir -p "$WORKSPACE"
 
-    export JOB_STATUS=${WORKSPACE}/status.groovy
     export BASE="${BACKUP_DIR}/${TARGET}"
     [ ! -d "$BASE" ] && mkdir -p "$BASE"
 
@@ -182,8 +181,7 @@ function main() {
 
     # make sure symlink is correct
     local -r symLinkFile="${BASE}.tgz"
-    [ -e "$symLinkFile" ] && rm "$symLinkFile"
-    ln -s "$(getLastBackup)" "$symLinkFile"
+    ln -s -f "$(getLastBackup)" "$symLinkFile"
     return 0
 }
 
@@ -208,7 +206,7 @@ function updateStatus()
     local -r force=${3:-}
 
     if [ ! -s "$JOB_STATUS" ] || [ "${force:-}" ]; then
-        echo 'Updating status.groovy' >&2
+        echo "Updating $JOB_STATUS" >&2
         {
             echo "$badge"
             echo "$text"

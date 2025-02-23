@@ -38,7 +38,7 @@ function updateStatus()
     local -r force=${2:-}
 
     if [ ! -s "$JOB_STATUS" ] || [ "${force:-}" ]; then
-        echo 'Updating status.groovy' >&2
+        echo "Updating $JOB_STATUS" >&2
         {
             echo 'error.gif'
             echo "$text"
@@ -51,9 +51,9 @@ function updateStatus()
 ##########################################################################################################
 
 set -o errtrace
-declare -r MOUNTPATH="${1:?}"
+declare -r JOB_STATUS="${1:?}" && shift
+declare -r MOUNTPATH="${1:?}"  && shift
 export TERM=linux
-export JOB_STATUS="${WORKSPACE:-.}/status.groovy"
 
 trap onexit ERR
 trap onexit INT

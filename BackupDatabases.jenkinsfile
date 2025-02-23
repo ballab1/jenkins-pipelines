@@ -4,6 +4,7 @@ import groovy.transform.Field
 
 // Initialize here so it is still available in post block if build fails.
 @Field String WWW = '/home/bobb/production/workspace.production/www/'
+@Field String STATUS_FILE = './status.postgres.groovy'
 
 
 pipeline {
@@ -20,9 +21,9 @@ pipeline {
                 stage ('Backup postgres') {
                     agent { label 's6.ubuntu.home' }
                     steps {
-                        sh "MAX_FILES=20 ./backup.sh 'postgres' 'svc/postgres' "
+                        sh "MAX_FILES=20 ./backup.sh $STATUS_FILE 'postgres' 'svc/postgres' "
                         archiveArtifacts allowEmptyArchive: true, artifacts: 'postgres*'
-                        loadIfExists './status.groovy'
+                        loadIfExists STATUS_FILE
                    }
                 }
             }

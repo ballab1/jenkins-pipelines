@@ -3,7 +3,8 @@ import groovy.transform.Field
 @Library('jenkins-sharedlibs')_
 
 // Initialize here so it is still available in post block if build fails.
-@Field String STATUS = './status.groovy'
+@Field String STATUS_MNT = './status.mnt.groovy'
+@Field String STATUS_NAGIOS = './status.nagios.groovy'
 
 pipeline {
     agent { label 's3.ubuntu.home' }
@@ -16,16 +17,16 @@ pipeline {
     stages {
         stage ('Check mount') {
             steps {
-                sh returnStatus: true, script: "./checkMounted.sh /mnt/ubuntu"
-                loadIfExists STATUS
+                sh returnStatus: true, script: "./checkMounted.sh $STATUS /mnt/ubuntu"
+                loadIfExists STATUS_MNT
             }
         }
         stage ('Backup NagiosConfig') {
 //            when { not { expression { return fileExists STATUS} } }
             steps {
               sh 'cp /home/bobb/production/workspace.production/nagios/config/NagiosConfig.tgz /home/bobb/production/nagios/'
-              sh "sudo ./backup.sh '/home/bobb/production/nagios/NagiosConfig.tgz'"
-              loadIfExists STATUS
+              sh "sudo ./backup.sh $STATUS_NAGIOS '/home/bobb/production/nagios/NagiosConfig.tgz'"
+              loadIfExists STATUS_NAGIOS
            }
         }
     }

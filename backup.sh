@@ -2,8 +2,9 @@
 
 set -o errtrace
 
-declare -r TARGET="${1:-}"
-declare -r LATEST_CONTENT="${2:?}"
+declare -r JOB_STATUS="${1:?}"
+declare -r TARGET="${2:-}"
+declare -r LATEST_CONTENT="${3:?}"
 
 declare -r NODENAME=$(hostname -f)
 declare -r WORKSPACE="${WORKSPACE:-$(pwd)}"

@@ -151,7 +151,7 @@ function updateStatus()
     local -r force=${3:-}
 
     if [ ! -s "$JOB_STATUS" ] || [ "${force:-}" ]; then
-        echo 'Updating status.groovy' >&2
+        echo "Updating $JOB_STATUS" >&2
         {
             echo "$badge"
             echo "$text"
@@ -172,16 +172,17 @@ IFS=$'\n\t'
 set +o verbose
 #set +o xtrace
 export TERM=linux
-export JOB_STATUS="${WORKSPACE:-.}/status.groovy"
-declare -r LOG="${2:-summary.log}"
+declare -r arg="${1:?}"
+declare -r JOB_STATUS="${2:?}"
+declare -r LOG="${3:?}"
 declare -r COLLECTION_LOG='garbage_collection.log'
 :> "$LOG"
 
-case "${1:?}" in
+case "$arg" in
    currate_images)
-     "$1";;
+     "$arg";;
    run_garbage_collection)
-     "$1";;
+     "$arg";;
    *)
      echo 'invalid option specified'
      exit 1;;

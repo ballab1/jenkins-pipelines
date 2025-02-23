@@ -4,7 +4,8 @@ import groovy.transform.Field
 
 // Initialize here so it is still available in post block if build fails.
 @Field String SUMMARY = 'summary.log'
-
+@Field String STATUS_CURATION = './status.curation.groovy'
+@Field String STATUS_GARBAGE = './status.garbage.groovy'
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -23,7 +24,8 @@ pipeline {
       steps {
         ansiColor('xterm') {
           dir(WORKSPACE) {
-            sh './clean-docker-registry.sh currate_images'
+            sh "./clean-docker-registry.sh currate_images ${STATUS_CURATION} garbage_collection.log"
+            loadIfExists STATUS_CURATION
           }
         }
       }
@@ -33,9 +35,9 @@ pipeline {
       steps {
         ansiColor('xterm') {
           dir(WORKSPACE) {
-            sh './clean-docker-registry.sh run_garbage_collection ' + SUMMARY
-            loadIfExists './status.groovy'
-            archiveArtifacts allowEmptyArchive: true, artifacts: '*.log' 
+            sh "./clean-docker-registry.sh run_garbage_collection ${STATUS_GARBAGE} summary.log ${SUMMARY}"
+            loadIfExists STATUS_GARBAGE
+            archiveArtifacts allowEmptyArchive: true, artifacts: '*.log'
           }
         }
       }
