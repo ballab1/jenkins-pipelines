@@ -10,56 +10,6 @@ spec:
   - ip: "10.3.1.10"
     hostnames:
     - "s3.ubuntu.home"
-  initContainers:
-  - name: jnlp-init
-    command:
-    - /bin/bash
-    - -c
-    - |
-      set -x
-      cd /usr/local/share/ca-certificates/
-      update-ca-certificates -f
-      cd /tmp/certs
-      cp -rL /etc/ssl/certs/* .
-      chmod 644 *
-      cd /var/run/keystore
-      keytool -importcert -cacerts -noprompt -trustcacerts -alias jenkins_root -file /usr/local/share/ca-certificates/root.crt -storepass changeit
-      keytool -importcert -cacerts -noprompt -trustcacerts -alias jenkins_server -file /usr/local/share/ca-certificates/server.crt -storepass changeit
-      cp -rL "${JAVA_HOME}/lib/security/cacerts" .
-      chmod 644 *
-    image: s2.ubuntu.home:5000/docker.io/jenkins/inbound-agent:3283.v92c105e0f819-8-alpine-jdk21
-    imagePullPolicy: Always
-    resources:
-      limits:
-        cpu: 1
-        memory: 1Gi
-      requests:
-        cpu: 1
-        memory: 1Gi
-    securityContext:
-        runAsUser: 1
-    tty: true
-    volumeMounts:
-    - name: root-certs
-      mountPath: /usr/local/share/ca-certificates/root.crt
-      readOnly: false
-      subPath: tls.crt
-    - name: root-certs
-      mountPath: /usr/local/share/ca-certificates/root.key
-      readOnly: false
-      subPath: tls.key
-    - name: server-certs
-      mountPath: /usr/local/share/ca-certificates/server.crt
-      readOnly: false
-      subPath: tls.crt
-    - name: server-certs
-      mountPath: /usr/local/share/ca-certificates/server.key
-      readOnly: false
-      subPath: tls.key
-    - name: certs-volume
-      mountPath: /tmp/certs
-    - name: keystore-volume
-      mountPath: /var/run/keystore
   containers:
   - name: jnlp
     image: s2.ubuntu.home:5000/docker.io/jenkins/inbound-agent:3283.v92c105e0f819-8-alpine-jdk21
@@ -76,38 +26,17 @@ spec:
     stdin: true
     tty: true
     volumeMounts:
-    - name: certs-volume
+    - name: ssl-certs
       mountPath: /etc/ssl/certs
-    - name: keystore-volume
-      mountPath: /opt/java/openjdk/lib/security/cacerts
       readOnly: true
-      subPath: cacerts
     - name: workspace-volume
       mountPath: /home/jenkins/agent
   restartPolicy: Never
 #  ttlSecondsAfterFinished: 120
   volumes:
-  - name: root-certs
-    secret:
-      secretName: root-ca
-      defaultMode: 0400
-      items:
-      - key: tls.key
-        path: tls.key
-      - key: tls.crt
-        path: tls.crt
-  - name: server-certs
-    secret:
-      secretName: server-ca
-      defaultMode: 0400
-      items:
-      - key: tls.key
-        path: tls.key
-      - key: tls.crt
-        path: tls.crt
-  - name: certs-volume
-    emptyDir: {}
-  - name: keystore-volume
-    emptyDir: {}
+  - name: ssl-certs
+    image:
+      reference: s2.ubuntu.home:5000/alpine/sidecar:3.21.3
+      pullPolicy: IfNotPresent
   - name: workspace-volume
     emptyDir: {}
