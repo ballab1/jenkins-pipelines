@@ -35,7 +35,8 @@ spec:
 #  ttlSecondsAfterFinished: 120
   volumes:
   - name: ssl-certs
+    image:
       reference: s2.ubuntu.home:5000/alpine/sidecar:3.21.3
-      imagePullPolicy: IfNotPresent
+      pullPolicy: IfNotPresent
   - name: workspace-volume
     emptyDir: {}
