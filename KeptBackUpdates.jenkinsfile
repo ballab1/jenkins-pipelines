@@ -1,0 +1,50 @@
+
+@Library('jenkins-sharedlibs')_
+
+
+
+def pipelineProcess() {
+    return { nodeName, body ->
+             nodeStep(nodeName, body)
+    }
+}
+
+def pipelineAction()  {
+    return { nodeName ->
+        catchError(buildResult: 'UNSTABLE', stageResult: 'UNSTABLE') {
+            if (nodeName != 'raspberry') {
+                sh "/home/bobb/.bin/keptBack.packages | tee  '${nodeName}.log'"
+            }
+        }
+        stash allowEmpty: true, includes: "${nodeName}.log", name: nodeName
+        archiveArtifacts allowEmptyArchive: true, artifacts: "${nodeName}*"
+    }
+}
+
+
+pipeline {
+    agent { label 'built-in' }
+    options {
+        buildDiscarder(logRotator(numToKeepStr: '20'))
+        disableConcurrentBuilds()
+        disableResume()
+        timestamps()
+    }
+    stages {
+        stage ('Process Items') {
+            steps {
+                parallelSteps(activeNodes(),
+                              pipelineProcess(),
+                              pipelineAction() )
+            }
+        }
+    }
+    post {
+        always {
+            kafkaBuildReporter()
+        }
+        cleanup {
+            deleteDir()
+        }
+    }
+}
