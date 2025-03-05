@@ -20,24 +20,13 @@ function as_root() {
 }
 
 #----------------------------------------------------------------------------
-function expandFile() {
+function backup_pvs() {
 
-    local -r dir="${1:?}"
-    local -r file="${2:?}"
-    local -r filelist="${3:?}"
-
-    [ -f "$filelist" ] || return
-    mkdir -p "$dir"
-    cd "$dir" ||:
-    {
-        local f
-        while read -r f; do
-            [ -f "$f" ] || continue
-            sha256sum "$f" | cut -d ' ' -f 1
-            echo "$f" >> "$filelist"
-        done < <(tar xvzf "$file")
-
-     } | sha256sum | cut -d ' ' -f 1
+    local -r backup_file="pv-backups.$(date +'%Y%m%d').tgz"
+    ssh bobb@s8 "cd /tmp; \
+                 sudo tar -czf '${backup_file}'; \
+                 sudo chown bobb:user '${backup_file}'; \
+                 mv '${backup_file}' ~/src/pv-backups/"
 }
 
 #----------------------------------------------------------------------------
@@ -85,18 +74,13 @@ function build_tar() {
 }
 
 #----------------------------------------------------------------------------
-function getLastBackup() {
-
-    find "${BASE}" -maxdepth 1 -mindepth 1 -type f -name '*.tgz' | sort | tail -1
-}
-
-#----------------------------------------------------------------------------
 function compareNewToOld() {
 
     local -r latest_tar="${1:?}"
+    local -r backup_dir="${2:?}"
 
     # use the sha256 values to compare contents of latest dir and last tarfile
-    local -r previousFile="$(getLastBackup)"
+    local -r previousFile="$(getLastBackup "$backup_dir")"
 
     if [ "${#previousFile}" -eq 0 ]; then
         echo "No previousfiles found"
@@ -146,6 +130,34 @@ function compareNewToOld() {
 }
 
 #----------------------------------------------------------------------------
+function expandFile() {
+
+    local -r dir="${1:?}"
+    local -r file="${2:?}"
+    local -r filelist="${3:?}"
+
+    [ -f "$filelist" ] || return
+    mkdir -p "$dir"
+    cd "$dir" ||:
+    {
+        local f
+        while read -r f; do
+            [ -f "$f" ] || continue
+            sha256sum "$f" | cut -d ' ' -f 1
+            echo "$f" >> "$filelist"
+        done < <(tar xvzf "$file")
+
+     } | sha256sum | cut -d ' ' -f 1
+}
+
+#----------------------------------------------------------------------------
+function getLastBackup() {
+
+    local -r backup_dir="${1:?}"
+    find "${backup_dir}" -maxdepth 1 -mindepth 1 -type f -name '*.tgz' | sort | tail -1
+}
+
+#----------------------------------------------------------------------------
 function main() {
 
     export TERM=linux
@@ -168,20 +180,19 @@ function main() {
     # generate tar backup
     local -r latest_tar="${WORKSPACE}/${TARGET}.$(date +"%Y%m%d").tgz"
     build_tar "$latest_tar"
-    compareNewToOld "$latest_tar"
+    compareNewToOld "$latest_tar" "$BASE"
 
     # remove old files to keep a fixed number of backups
-    local -a files
-    mapfile -t files < <(find "${BASE}" -maxdepth 1 -mindepth 1 -type f | sort -r)
-    local -i i="${#files[*]}"
-    while [ $(( i-- )) -gt "$MAX_FILES" ]; do
-        rm "${files[$i]}"
-        updateStatus 'completed.gif' "removed ${files[$i]}" 'force'
-    done
+    remove_old_files "$BASE" "$MAX_FILES"
 
     # make sure symlink is correct
-    local -r symLinkFile="${BASE}.tgz"
-    ln -s -f "$(getLastBackup)" "$symLinkFile"
+    update_symlink "$BASE"
+
+    if [ "$BASE" = 'postgres' ];then
+        remove_old_files 'pv-backups' "$MAX_FILES"
+        update_symlink 'pv-backups'
+    fi
+
     return 0
 }
 
@@ -196,6 +207,30 @@ function onexit()
     fi
     echo
     return 0
+}
+
+#----------------------------------------------------------------------------
+function remove_old_files()
+{
+    local -r backup_dir="${1:?}"
+    local -r max_files="${2:?}"
+
+    # remove old files to keep a fixed number of backups
+    local -a files
+    mapfile -t files < <(find "$backup_dir" -maxdepth 1 -mindepth 1 -type f | sort -r)
+    local -i i="${#files[*]}"
+    while [ $(( i-- )) -gt "$max_files" ]; do
+        rm "${files[$i]}"
+        updateStatus 'completed.gif' "removed ${files[$i]}" 'force'
+    done
+}
+
+#----------------------------------------------------------------------------
+function update_symlink()
+{
+    local -r backup_dir="${1:?}"
+
+    ln -s -f "$(getLastBackup "$backup_dir")" "${backup_dir}.tgz"
 }
 
 #----------------------------------------------------------------------------
