@@ -26,17 +26,10 @@ spec:
     stdin: true
     tty: true
     volumeMounts:
-    - name: ssl-certs
-      mountPath: /etc/ssl/certs
-      readOnly: true
     - name: workspace-volume
       mountPath: /home/jenkins/agent
   restartPolicy: Never
 #  ttlSecondsAfterFinished: 120
   volumes:
-  - name: ssl-certs
-    image:
-      reference: s2.ubuntu.home:5000/alpine/sidecar:3.21.3
-      pullPolicy: IfNotPresent
   - name: workspace-volume
     emptyDir: {}

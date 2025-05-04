@@ -29,7 +29,8 @@ pipeline {
             steps {
 //                                           --compress
 //                                           --password-file='/home/bobb/.inf.nas.rsync'
-                sh """sudo -u $USER  rsync --delete              \
+                sh """sudo -u $USER  rsync --checksum            \
+                                           --delete              \
                                            --devices             \
                                            --executability       \
                                            --force               \
@@ -51,8 +52,8 @@ pipeline {
         always {
             kafkaBuildReporter()
         }
-        cleanup {
-            deleteDir()
-        }
+//        cleanup {
+//            deleteDir()
+//        }
 	}
 }

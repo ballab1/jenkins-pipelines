@@ -42,13 +42,6 @@ pipeline {
                         loadIfExists STATUS_VERSIONS
                    }
                 }
-                stage ('Backup Web') {
-                    steps {
-                        sh "./backup.sh $STATUS_WEB 'web' '/mnt/k8s/web'"
-                        archiveArtifacts allowEmptyArchive: true, artifacts: 'web*'
-                        loadIfExists STATUS_WEB
-                   }
-                }
                 stage ('Backup Heros') {
                     steps {
                         sh "./backup.sh $STATUS_HEROS 'stormshot' '/mnt/k8s/stormshot'"
