@@ -1,0 +1,4 @@
+[submodule "bin"]
+	path = bin
+	url = https://github.com/ballab1/work-stuff
+	branch = main
