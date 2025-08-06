@@ -23,6 +23,7 @@ function as_root() {
 function backup_pvs() {
 
     local -r backup_file="pv-backups.$(date +'%Y%m%d').tgz"
+    #shellcheck disable=SC2029
     ssh bobb@s8 "cd /tmp; \
                  sudo tar -czf '${backup_file}'; \
                  sudo chown bobb:user '${backup_file}'; \
@@ -45,8 +46,10 @@ function build_tar() {
             #shellcheck disable=SC2207
             srcFiles+=( $(sudo find "$file" -type f | grep -v '.git' ||:) )
         done < "${WORKSPACE}/tarfiles.lst"
+        apt list --installed >installed.packages
+        srcFiles+=( 'installed.packages' )
         [ "${#srcFiles[*]}" -eq 0 ] && return 1
-        (sudo tar -cvzf "$tarFile" "${srcFiles[@]}") 2>&1 > "${tarFile}.log"
+        (sudo tar -cvzf "$tarFile" "${srcFiles[@]}") > "${tarFile}.log" 2>&1
         local -r og="$(id -g):$(id -u)"
         sudo chown "$og" "$tarFile"
 
@@ -67,7 +70,7 @@ function build_tar() {
         done < <(sudo find "$prefix" -type f | sed -e 's|^'"$prefix"'||' ||:)
         [ "${#srcFiles[*]}" -eq 0 ] && return 1
         #shellcheck disable=SC2086
-        (sudo tar -cvzf "$tarFile" -C "$LATEST_CONTENT" "${srcFiles[@]}" ) 2>&1 > "${tarFile}.log"
+        (sudo tar -cvzf "$tarFile" -C "$LATEST_CONTENT" "${srcFiles[@]}" ) > "${tarFile}.log"  2>&1
         local -r og="$(id -g):$(id -u)"
         sudo chown "$og" "$tarFile"
     fi

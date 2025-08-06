@@ -19,6 +19,7 @@
 /etc/network
 /etc/netplan
 /etc/NetworkManager
+/etc/nginx
 /etc/ntp.conf
 /etc/passwd
 /etc/php5
