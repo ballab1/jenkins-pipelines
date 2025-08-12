@@ -1,0 +1,47 @@
+@Library('jenkins-sharedlibs')_
+
+/////////////////////////////////////////////////////////////////////////////////////////////////
+
+pipeline {
+  agent any
+  options {
+    buildDiscarder(logRotator(numToKeepStr: '20'))
+    disableConcurrentBuilds()
+    disableResume()
+    timestamps()
+  }
+  parameters {
+    string(name: 'TARGET_DIR', defaultValue: '/home/bobb/deploy-redpanda', description: 'target directory for config files')   }
+
+  stages {
+        stage ('s3.ubuntu.home') {
+          agent { label 's3.ubuntu.home' }
+          steps {
+              deployRedpanda(params.TARGET_DIR)
+          }
+        }
+        stage ('s7.ubuntu.home') {
+          agent { label 's7.ubuntu.home' }
+          steps {
+              deployRedpanda(params.TARGET_DIR)
+          }
+        }
+        stage ('s8.ubuntu.home') {
+          agent { label 's8.ubuntu.home' }
+          steps {
+              deployRedpanda(params.TARGET_DIR)
+          }
+        }
+        stage ('verify') {
+          agent { label 's4.ubuntu.home' }
+          steps {
+              reportZookeeper(['s3', 's7', 's8'])
+          }
+        }
+  }
+  post {
+    always {
+        kafkaBuildReporter()
+    }
+  }
+}
