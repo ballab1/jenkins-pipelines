@@ -3,12 +3,9 @@
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
 pipeline {
-    parameters {
-        string(name: 'CLOUD', defaultValue: env.JOB_NAME.substring(input.lastIndexOf('/') + 1), description: 'Name of cloud on which to run this job')
-    }
     agent {
         kubernetes {
-            cloud params.CLOUD
+            cloud projectBase()
             defaultContainer 'jnlp'
             yamlFile 'KubernetesTestPod.yaml'
             showRawYaml(false)
@@ -24,7 +21,7 @@ pipeline {
     stages {
         stage('hello') {
             steps {
-                echo "Hello world on ${params.CLOUD} =============================================="
+                echo "Hello world on ${projectBase()} =============================================="
                 sh 'env | sort'
             }
         }
