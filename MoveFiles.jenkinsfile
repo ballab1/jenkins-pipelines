@@ -4,10 +4,10 @@
 pipeline {
     agent {
         docker {
-	    image 's2.ubuntu.home:5000/alpine/movefiles:dev'
+	    image 'registry.ubuntu.home/alpine/movefiles:dev'
             label 'docker-host'
             args '--volume /mnt:/mnt --entrypoint=""'
-            registryUrl 'http://s2.ubuntu.home:5000/'
+            registryUrl 'https://registry.ubuntu.home/'
         }
     }
     options {

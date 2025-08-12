@@ -4,9 +4,9 @@
 pipeline {
     agent {
         docker {
-	    image 's2.ubuntu.home:5000/docker.io/jenkins/inbound-agent:3283.v92c105e0f819-1-alpine-jdk17'
+	    image 'registry.ubuntu.home/docker.io/jenkins/inbound-agent:3283.v92c105e0f819-1-alpine-jdk17'
             label 'docker-host'
-            registryUrl 'http://s2.ubuntu.home:5000/'
+            registryUrl 'https://registry.ubuntu.home/'
         }
     }
     options {
