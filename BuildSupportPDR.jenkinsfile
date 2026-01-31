@@ -3,8 +3,8 @@
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
 script {
-    reponame = 'support'
-    ref = 'refs/heads/' + params.BRANCH
+    def reponame = 'support'
+    def ref = 'refs/heads/' + params.BRANCH
 }
 
 pipeline {
@@ -77,7 +77,7 @@ pipeline {
                         def vars = ''
                         if ( "${params.Always_Build}" == 'true' ) { vars += ' --force' }
                         if ( "${params.Always_Push}" == 'true' ) { vars += ' --push' }
-                        sh "./build.sh ${vars}"
+                        sh "./dc_build.sh ${vars}"
                     }
                 }
             }
