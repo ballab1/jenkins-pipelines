@@ -2,10 +2,8 @@
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
-script {
-    def reponame = 'support'
-    def ref = 'refs/heads/' + params.BRANCH
-}
+def reponame = 'support'
+def ref = 'refs/heads/' + params.BRANCH
 
 pipeline {
     agent { label 's3.ubuntu.home' }
@@ -22,7 +20,7 @@ pipeline {
     }
     triggers {
         GenericTrigger(
-            causeString: 'Triggered by a change to $reponame',
+            causeString: "Triggered by a change to ${reponame}",
             genericVariables: [
                 [ key: 'reponame', value: '$.repository.name', defaultValue: 'support' ],
                 [ key: 'ref', value: '$.ref', defaultValue: 'refs/heads/'+params.BRANCH ]

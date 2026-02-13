@@ -9,7 +9,7 @@ declare -ri MAX_FILES=${MAX_FILES:-25}
 declare -r BACKUP_DIR="${BACKUP_DIR:-/home/bobb/src}"
 
 #----------------------------------------------------------------------------
-function as_root() {
+function backup::as_root() {
 
     # only run as root since the access to /mnt/k8s requires root
     if [ ${EUID:-0} -ne 0 ]; then
@@ -20,7 +20,7 @@ function as_root() {
 }
 
 #----------------------------------------------------------------------------
-function backup_pvs() {
+function backup::backup_pvs() {
 
     local -r backup_file="pv-backups.$(date +'%Y%m%d').tgz"
     #shellcheck disable=SC2029
@@ -31,7 +31,7 @@ function backup_pvs() {
 }
 
 #----------------------------------------------------------------------------
-function build_tar() {
+function backup::build_tar() {
 
     local -r tarFile="${1:?}"
 
@@ -77,13 +77,13 @@ function build_tar() {
 }
 
 #----------------------------------------------------------------------------
-function compareNewToOld() {
+function backup::compareNewToOld() {
 
     local -r latest_tar="${1:?}"
     local -r backup_dir="${2:?}"
 
     # use the sha256 values to compare contents of latest dir and last tarfile
-    local -r previousFile="$(getLastBackup "$backup_dir")"
+    local -r previousFile="$(backup::getLastBackup "$backup_dir")"
 
     if [ "${#previousFile}" -eq 0 ]; then
         echo "No previousfiles found"
@@ -97,8 +97,8 @@ function compareNewToOld() {
         # check the sha of every file from previous and latest combined into a single sha, and build filelist of all files
         local -r filelist="${work_dir}/files.txt"
         :> "$filelist"
-        previousSha="$(expandFile "${work_dir}/previous" "$previousFile" "$filelist")"
-        targetSha="$(expandFile "${work_dir}/latest" "$latest_tar" "$filelist")"
+        previousSha="$(backup::expandFile "${work_dir}/previous" "$previousFile" "$filelist")"
+        targetSha="$(backup::expandFile "${work_dir}/latest" "$latest_tar" "$filelist")"
         if [ "${#previousSha}" -gt 0 ] && [ "${#targetSha}" -gt 0 ]; then
             [ "$previousSha" = "$targetSha" ] && return 0
         fi
@@ -129,11 +129,11 @@ function compareNewToOld() {
 
     # move the latest tarfile to the backup location and create a symlink
     mv "$latest_tar" "$BASE"
-    updateStatus 'completed.gif' "${LATEST_CONTENT}: backed up to ${BASE}"
+    backup::updateStatus 'completed.gif' "${LATEST_CONTENT}: backed up to ${BASE}"
 }
 
 #----------------------------------------------------------------------------
-function expandFile() {
+function backup::expandFile() {
 
     local -r dir="${1:?}"
     local -r file="${2:?}"
@@ -154,14 +154,14 @@ function expandFile() {
 }
 
 #----------------------------------------------------------------------------
-function getLastBackup() {
+function backup::getLastBackup() {
 
     local -r backup_dir="${1:?}"
     find "${backup_dir}" -maxdepth 1 -mindepth 1 -type f -name '*.tgz' | sort | tail -1
 }
 
 #----------------------------------------------------------------------------
-function main() {
+function backup::main() {
 
     export TERM=linux
 
@@ -174,33 +174,33 @@ function main() {
 
     #shellcheck disable=SC1091
     source /home/bobb/.bin/trap.bashlib
-    trap onexit ERR
-    trap onexit INT
-    trap onexit PIPE
-    trap onexit EXIT
+    trap backup::onexit ERR
+    trap backup::onexit INT
+    trap backup::onexit PIPE
+    trap backup::onexit EXIT
 
 
     # generate tar backup
     local -r latest_tar="${WORKSPACE}/${TARGET}.$(date +"%Y%m%d").tgz"
-    build_tar "$latest_tar"
-    compareNewToOld "$latest_tar" "$BASE"
+    backup::build_tar "$latest_tar"
+    backup::compareNewToOld "$latest_tar" "$BASE"
 
     # remove old files to keep a fixed number of backups
-    remove_old_files "$BASE" "$MAX_FILES"
+    backup::remove_old_files "$BASE" "$MAX_FILES"
 
     # make sure symlink is correct
-    update_symlink "$BASE"
+    backup::update_symlink "$BASE"
 
     if [ "$BASE" = 'postgres' ];then
-        remove_old_files 'pv-backups' "$MAX_FILES"
-        update_symlink 'pv-backups'
+        backup::remove_old_files 'pv-backups' "$MAX_FILES"
+        backup::update_symlink 'pv-backups'
     fi
 
     return 0
 }
 
 #----------------------------------------------------------------------------
-function onexit()
+function backup::onexit()
 {
     [ -e "${WORKSPACE}/tmp/${TARGET}" ] && rm -rf "${WORKSPACE}/tmp/${TARGET}"
     if [ -s "$JOB_STATUS" ]; then
@@ -213,7 +213,7 @@ function onexit()
 }
 
 #----------------------------------------------------------------------------
-function remove_old_files()
+function backup::remove_old_files()
 {
     local -r backup_dir="${1:?}"
     local -r max_files="${2:?}"
@@ -224,20 +224,20 @@ function remove_old_files()
     local -i i="${#files[*]}"
     while [ $(( i-- )) -gt "$max_files" ]; do
         rm "${files[$i]}"
-        updateStatus 'completed.gif' "removed ${files[$i]}" 'force'
+        backup::updateStatus 'completed.gif' "removed ${files[$i]}" 'force'
     done
 }
 
 #----------------------------------------------------------------------------
-function update_symlink()
+function backup::update_symlink()
 {
     local -r backup_dir="${1:?}"
 
-    ln -s -f "$(getLastBackup "$backup_dir")" "${backup_dir}.tgz"
+    ln -s -f "$(backup::getLastBackup "$backup_dir")" "${backup_dir}.tgz"
 }
 
 #----------------------------------------------------------------------------
-function updateStatus()
+function backup::updateStatus()
 {
     local -r badge=${1:?}
     local -r text=${2:?}

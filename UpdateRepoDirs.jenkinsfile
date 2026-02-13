@@ -5,7 +5,7 @@
 
 def hosts = [:]
 def names = []
-
+def reponame = 'support'
 
 def prepareNodeStage(String host) {
   return {
@@ -58,10 +58,10 @@ timestamps {
                 regexpFilter: '-(deploy-s1|deploy-s3|deploy-s4|deploy|stuff)$'
               ]
             ],
-            causeString: 'Triggered by a change to $reponame',
+            causeString: "Triggered by a change to ${reponame}",
 //            printContributedVariables: true,
             silentResponse: false,
-            regexpFilterText: '$reponame',
+            regexpFilterText: "$reponame",
             regexpFilterExpression: '^' + reponame + '$'
           ]
         ])
