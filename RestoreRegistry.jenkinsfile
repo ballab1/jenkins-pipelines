@@ -7,7 +7,7 @@ import groovy.transform.Field
 @Field String USER = 'bobb'
 
 pipeline {
-    agent { label 's2.ubuntu.home' }
+    agent { label 'registry' }
     options {
         buildDiscarder(logRotator(numToKeepStr: '20'))
         disableConcurrentBuilds()

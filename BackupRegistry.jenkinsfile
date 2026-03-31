@@ -7,7 +7,7 @@ import groovy.transform.Field
 @Field String USER = 'bobb'
 
 pipeline {
-    agent { label 's2.ubuntu.home' }
+    agent { label 'registry' }
     options {
         buildDiscarder(logRotator(numToKeepStr: '20'))
         disableConcurrentBuilds()
@@ -15,8 +15,8 @@ pipeline {
         timestamps()
     }
     parameters {
-        string(name: 'SOURCE', defaultValue: '/var/lib/docker-registry/docker/registry/v2/', description: 'source directory do backup')
-        string(name: 'DESTINATION', defaultValue: '/mnt/Registry', description: 'remote destination for backup')
+        string(name: 'SOURCE', defaultValue: '/mnt/registry/docker-registry/', description: 'source directory do backup')
+        string(name: 'DESTINATION', defaultValue: '/mnt/Registry/', description: 'remote destination for backup')
     }
     stages {
         stage ('Check mount') {

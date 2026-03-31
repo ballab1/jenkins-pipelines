@@ -56,8 +56,12 @@ function backup::build_tar() {
     elif [ "$TARGET" = 'postgres' ]; then
         backup_file="postgres.$(date +'%Y%m%d').sql"
         kubectl exec "$LATEST_CONTENT" -n postgres -- pg_dumpall -h 127.0.0.1 -U postgres \
-          | sed '/^-- Started/d; /^-- Completed/d' > "$backup_file"
+          | sed -e '/^-- Started/d; /^-- Completed/d' -e 's|CREATE ROLE postgres;||'  > "$backup_file"
         tar -cvzf "$tarFile" "$backup_file"
+        if [ "$(stat "$tarFile")" -lt 2048 ]; then
+            echo "No postgres data found"
+            exit 1
+        fi
 
     else
         (sudo test -d "$LATEST_CONTENT") || exit 1

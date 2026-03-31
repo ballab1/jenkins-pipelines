@@ -100,6 +100,7 @@ declare host="${NODE_NAME:-$(hostname)}"
 declare -r results="${1:-${host}}.inf"
 declare -r dirsFile="${host}.dirs"
 
+echo "Host:  ${host}, Results: ${results}, dirsFile: ${dirsFile}"
 if [ -e "$dirsFile" ]; then
 
     process 'false' 'false' && status=$? || status=$?

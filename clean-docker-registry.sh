@@ -103,12 +103,12 @@ function run_garbage_collection() {
     echo
     echo
     echo
-    sudo /usr/bin/docker-registry garbage-collect /etc/docker/registry/config.yml > "$COLLECTION_LOG"
+    sudo /bin/registry garbage-collect --delete-untagged /etc/distribution/config.yml > "$COLLECTION_LOG"
     blocksAfterGC=$(df /dev/sdb1 | sed '1d' | awk '{print $4}')
 
     echo
     echo
-    pushd '/var/lib/docker-registry/docker/registry/v2/repositories'
+    pushd '/mnt/registry/docker-registry/repositories'
     removeEmptyTags '.'
     popd
     blocksAfterRemovingEmptyTags=$(df /dev/sdb1 | sed '1d' | awk '{print $4}')
@@ -162,6 +162,8 @@ function updateStatus()
 }
 
 #############################################################################################
+# "./clean-docker-registry.sh currate_images ${STATUS_CURATION} garbage_collection.log"
+# "./clean-docker-registry.sh run_garbage_collection ${STATUS_GARBAGE} summary.log ${SUMMARY}"
 
 # Use the Unofficial Bash Strict Mode
 set -o errexit

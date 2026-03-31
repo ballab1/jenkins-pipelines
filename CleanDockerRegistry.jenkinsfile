@@ -31,7 +31,7 @@ pipeline {
       }
     }
     stage ('Garbage Collection') {
-      agent { label 's2.ubuntu.home' }
+      agent { label 'registry' }
       steps {
         ansiColor('xterm') {
           dir(WORKSPACE) {
