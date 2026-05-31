@@ -59,13 +59,19 @@ timestamps {
               ]
             ],
             causeString: "Triggered by a change to ${reponame}",
-//            printContributedVariables: true,
+            printContributedVariables: true,
             silentResponse: false,
             regexpFilterText: "$reponame",
             regexpFilterExpression: '^' + reponame + '$'
           ]
         ])
       ])
+
+
+      echo "reponame:  ${reponame}, params.reponame: ${params.reponame}"
+      if (reponame == 'support') {
+          reponame = params.reponame
+      }
 
       checkout scm
       updateRepoDirs "${WORKSPACE}/dependants/${reponame}.json"
@@ -89,14 +95,14 @@ timestamps {
   stage ('Generate Report') {
     node {
       updateRepoDirsResults(names)
-      deleteDir()
+//      deleteDir()
     }
   }
 
   stage ('submit-metrics') {
     node {
       kafkaBuildReporter()
-      deleteDir()
+      //deleteDir()
     }
   }
 }

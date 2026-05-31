@@ -15,7 +15,7 @@
 #    /media/ext3-d/docker-registry /var/lib/docker-registry   none    bind
 
 #----------------------------------------------------------------------------
-function currate_images() {
+function curate_images() {
 
     # define registries and #images we keep for each
     local -A registries=(
@@ -34,7 +34,7 @@ function currate_images() {
     export __SECRETS_FILE=/home/bobb/.inf/secret.properties
     for registry in "${!registries[@]}"; do
         echo
-	echo "currating images in ${registry}"
+	echo "curating images in ${registry}"
     	./bin/docker-utilities delete \
             --max "${registries[$registry]}" \
             --no_confirm_delete \
@@ -103,12 +103,12 @@ function run_garbage_collection() {
     echo
     echo
     echo
-    sudo /usr/bin/docker-registry garbage-collect /etc/docker/registry/config.yml > "$COLLECTION_LOG"
+    docker exec -t registry /bin/registry garbage-collect --delete-untagged /etc/distribution/config.yml > "$COLLECTION_LOG"
     blocksAfterGC=$(df /dev/sdb1 | sed '1d' | awk '{print $4}')
 
     echo
     echo
-    pushd '/var/lib/docker-registry/docker/registry/v2/repositories'
+    pushd '/mnt/registry/docker-registry/repositories'
     removeEmptyTags '.'
     popd
     blocksAfterRemovingEmptyTags=$(df /dev/sdb1 | sed '1d' | awk '{print $4}')
@@ -162,6 +162,8 @@ function updateStatus()
 }
 
 #############################################################################################
+# "./clean-docker-registry.sh curate_images ${STATUS_CURATION} garbage_collection.log"
+# "./clean-docker-registry.sh run_garbage_collection ${STATUS_GARBAGE} summary.log ${SUMMARY}"
 
 # Use the Unofficial Bash Strict Mode
 set -o errexit
@@ -179,7 +181,7 @@ declare -r COLLECTION_LOG='garbage_collection.log'
 :> "$LOG"
 
 case "$arg" in
-   currate_images)
+   curate_images)
      "$arg";;
    run_garbage_collection)
      "$arg";;

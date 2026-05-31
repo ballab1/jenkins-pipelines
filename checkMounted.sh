@@ -6,9 +6,10 @@ function main()
    :> "$JOB_STATUS"
 
     sudo mount -a
-    local mount="$(mount | grep "$MOUNTPATH" | cut -d ' ' -f 3)"
-    if [ "$mount" = "$MOUNTPATH" ]; then
-       (timeout --signal=KILL 10 ls -d "$MOUNTPATH") && exit 0
+    local dir="${MOUNTPATH%/}"
+    local mount="$(mount | grep "$dir" | cut -d ' ' -f 3)"
+    if [ "$mount" = "$dir" ]; then
+       (timeout --signal=KILL 10 ls -d "$dir") && exit 0
        echo 'STALE MOUNT detected'
        updateStatus 'STALE MOUNT detected'
     else

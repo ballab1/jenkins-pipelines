@@ -1,0 +1,11 @@
+################################################################################
+# Definitions of REQUIRED variables
+################################################################################
+#env:
+#    DUMMY: null
+dependencies:
+    AGENT_VERSION:
+      - repo:  'https://github.com/ballab1/jenkins-agent.git'
+        files:
+            - 'KubernetesTestPod.yaml'
+

@@ -24,14 +24,15 @@ pipeline {
       steps {
         ansiColor('xterm') {
           dir(WORKSPACE) {
-            sh "./clean-docker-registry.sh currate_images ${STATUS_CURATION} garbage_collection.log"
+            sh "./clean-docker-registry.sh curate_images ${STATUS_CURATION} garbage_collection.log"
             loadIfExists STATUS_CURATION
           }
         }
       }
     }
     stage ('Garbage Collection') {
-      agent { label 's2.ubuntu.home' }
+      when { not { tag pattern:  STATUS_CURATION, comparator: 'GLOB'  } }
+      agent { label 'registry' }
       steps {
         ansiColor('xterm') {
           dir(WORKSPACE) {

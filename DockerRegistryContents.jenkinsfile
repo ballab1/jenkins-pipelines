@@ -24,6 +24,7 @@ pipeline {
                 ansiColor('xterm') {
                     sh '''
                          (cd bin;git-crypt unlock /keys/work-stuff.key)
+                         env | sort
                           docker-utilities report --format json --output /opt/registryContents.json
                           cp --remove-destination "$(dirname "$(command -v docker-utilities)")/registryReport.groovy" /opt
                        '''
