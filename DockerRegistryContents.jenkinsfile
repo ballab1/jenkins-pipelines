@@ -14,7 +14,7 @@ pipeline {
         stage('Generate JSON') {
             agent {
                 docker {
-                    image 'registry.ubuntu.home/alpine/build_container:latest'
+                    image 'registry.ubuntu.home/alpine/build_container:main'
                     label 'docker-host'
                     args "--volume '/home/bobb/src/keys:/keys' --volume '${WORKSPACE}:/opt' --entrypoint='' --dns=10.3.1.4"
                     registryUrl 'https://registry.ubuntu.home/'
