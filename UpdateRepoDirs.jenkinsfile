@@ -55,7 +55,7 @@ timestamps {
                 key: 'reponame',
                 defaultValue: params.reponame,
                 value: '$.repository.name',
-                regexpFilter: '-(deploy-s1|deploy-s3|deploy-s4|deploy|stuff)$'
+                regexpFilter: '-(deploy-s1|deploy-s3|deploy-s4|deploy)$'
               ]
             ],
             causeString: "Triggered by a change to ${reponame}",

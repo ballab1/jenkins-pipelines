@@ -3,7 +3,10 @@
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
 pipeline {
-    agent { label 'docker-host' }
+    environment  {
+        HOME = '/home/bobb'
+        CURL_PARAMS= "-chainCAfile /certs/SohoBall-Registry-Chain.crt"
+    }
     options {
         buildDiscarder(logRotator(numToKeepStr: '20'))
         disableConcurrentBuilds()
@@ -16,7 +19,7 @@ pipeline {
                 docker {
                     image 'registry.ubuntu.home/alpine/build_container:main'
                     label 'docker-host'
-                    args "--volume '/home/bobb/src/keys:/keys' --volume '${WORKSPACE}:/opt' --entrypoint='' --dns=10.3.1.4"
+                    args "--volume '${HOME}:/opt' --volume '${HOME}/src/keys:/keys' --volume '${HOME}/.inf:/inf' --entrypoint='' --dns=10.3.1.4"
                     registryUrl 'https://registry.ubuntu.home/'
                 }
             }
@@ -24,12 +27,11 @@ pipeline {
                 ansiColor('xterm') {
                     sh '''
                          (cd bin;git-crypt unlock /keys/work-stuff.key)
-                         env | sort
-                          docker-utilities report --format json --output /opt/registryContents.json
-                          cp --remove-destination "$(dirname "$(command -v docker-utilities)")/registryReport.groovy" /opt
+                         docker-utilities --credentials '/inf/secret.properties' report --format json --output registryContents.json
+                         cp --remove-destination "$(dirname "$(command -v docker-utilities)")/registryReport.groovy" '/home/bobb/registryReport.groovy'
                        '''
                 }
-                stash includes: 'registryContents.json, storage.txt, registryReport.groovy',  name: 'json'
+                stash includes: 'registryContents.json, storage.txt',  name: 'json'
                 archiveArtifacts allowEmptyArchive: true, artifacts: 'registryContents*.json'
             }
         }
@@ -38,19 +40,21 @@ pipeline {
                 docker {
                     image 'registry.ubuntu.home/docker.io/groovy:2.6-jre-alpine'
                     label 'docker-host'
-                    args "--volume '${WORKSPACE}:/home/groovy/scripts'"
+                    args "--volume '${HOME}:/home/groovy/scripts'"
                     registryUrl 'https://registry.ubuntu.home/'
                     reuseNode true
                 }
             }
             steps {
-                sh '''
-                      [ ! -e registryContents.json ] || rm registryContents.json
-                      find . -name '*.txt' -delete
-                   '''
-                unstash 'json'
-                sh 'JSON="${WORKSPACE}/registryContents.json" groovy registryReport.groovy'
-                archiveArtifacts allowEmptyArchive: true, artifacts: '**/*.txt'
+                dir ('/home/builder') {
+                    sh '''
+                        [ ! -e registryContents.json ] || rm registryContents.json
+                        find . -name '*.txt' -delete
+                       '''
+                    unstash 'json'
+                    sh 'JSON="registryContents.json" groovy registryReport.groovy'
+                    archiveArtifacts allowEmptyArchive: true, artifacts: '**/*.txt'
+                }
             }
         }
     }

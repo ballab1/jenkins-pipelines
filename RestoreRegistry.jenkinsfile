@@ -26,6 +26,7 @@ pipeline {
             }
         }
         stage ('Restore Registry') {
+            when { not { tag pattern:  STATUS_MNT, comparator: 'GLOB'  } }
             steps {
                 sh """
                       sudo systemctl stop docker-registry
