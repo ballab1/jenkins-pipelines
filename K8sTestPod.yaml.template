@@ -1,0 +1,35 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: jenkins-slave
+  namespace: jenkins
+  labels:
+    jenkins-label: POD_LABEL
+spec:
+  hostAliases:
+  - ip: "10.3.1.10"
+    hostnames:
+    - "s3.ubuntu.home"
+  containers:
+  - name: jnlp
+    image: registry.ubuntu.home/alpine/jenkins/inbound-agent/3355.v388858a_47b_33-5-alpine-jdk21:${AGENT_VERSION}
+    imagePullPolicy: Always
+    resources:
+      limits:
+        cpu: 1
+        memory: 1Gi
+      requests:
+        cpu: 1
+        memory: 1Gi
+    securityContext:
+        runAsUser: 1000
+    stdin: true
+    tty: true
+    volumeMounts:
+    - name: workspace-volume
+      mountPath: /home/jenkins/agent
+  restartPolicy: Never
+#  ttlSecondsAfterFinished: 120
+  volumes:
+  - name: workspace-volume
+    emptyDir: {}

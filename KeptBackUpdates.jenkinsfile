@@ -1,7 +1,6 @@
+@Library('jenkins-sharedlibs') _
 
-@Library('jenkins-sharedlibs')_
-
-
+/////////////////////////////////////////////////////////////////////////////////////////////////
 
 def pipelineProcess() {
     return { nodeName, body ->

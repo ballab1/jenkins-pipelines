@@ -1,6 +1,6 @@
-import groovy.transform.Field
+@Library('jenkins-sharedlibs') _
 
-@Library('jenkins-sharedlibs')_
+/////////////////////////////////////////////////////////////////////////////////////////////////
 
 @Field String STATUS_MNT = './status.nagios.groovy'
 @Field String ROOT = 'root'
@@ -26,6 +26,7 @@ pipeline {
             }
         }
         stage ('Restore Registry') {
+            when { not { tag pattern:  STATUS_MNT, comparator: 'GLOB'  } }
             steps {
                 sh """
                       sudo systemctl stop docker-registry

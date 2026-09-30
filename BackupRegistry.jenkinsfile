@@ -1,8 +1,8 @@
 import groovy.transform.Field
 
-@Library('jenkins-sharedlibs')_
+@Library('jenkins-sharedlibs') _
 
-@Field String STATUS_MNT = './status.nagios.groovy'
+@Field String STATUS_MNT = './status.registry-backup.groovy'
 @Field String ROOT = 'root'
 @Field String USER = 'bobb'
 

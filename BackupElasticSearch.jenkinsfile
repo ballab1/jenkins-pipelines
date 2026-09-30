@@ -20,6 +20,7 @@ pipeline {
             }
         }
         stage ('Backup ElasticSearch') {
+            when { not { tag pattern:  STATUS_FILE_1, comparator: 'GLOB'  } }
             steps {
               dir ('/home/bobb/elk-deploy/workspace.elk-deploy/elasticsearch/data') {
                   sh "tar czf '${WORKSPACE}/ElasticSearch.tgz' * ||:"

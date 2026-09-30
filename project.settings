@@ -7,5 +7,8 @@ dependencies:
     AGENT_VERSION:
       - repo:  'https://github.com/ballab1/jenkins-agent.git'
         files:
-            - 'KubernetesTestPod.yaml'
+            - 'K8sTestPod.yaml'
+      - repo:  'https://github.com/ballab1/support/build_container.git'
+        files:
+            - 'K8sBuildPod.yaml'
 

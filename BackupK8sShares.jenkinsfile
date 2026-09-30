@@ -27,6 +27,7 @@ pipeline {
             }
         }
         stage ('workers') {
+            when { not { tag pattern:  STATUS_MNT, comparator: 'GLOB'  } }
             parallel {
                 stage ('Backup Recipes') {
                     steps {

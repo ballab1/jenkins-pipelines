@@ -1,4 +1,4 @@
-@Library('jenkins-sharedlibs')_
+@Library('jenkins-sharedlibs') _
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -29,10 +29,10 @@ pipeline {
   }
   post {
     always {
-        kafkaBuildReporter()       
+        kafkaBuildReporter()
     }
     cleanup {
         deleteDir()
     }
   }
-} 
+}
