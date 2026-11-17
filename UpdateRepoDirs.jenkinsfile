@@ -88,10 +88,12 @@ timestamps {
   }
 
   stage ('Process nodes') {
+    when { tag pattern:  "${WORKSPACE}/dependants/${reponame}.json", comparator: 'GLOB'  }
     parallel hosts
   }
 
   stage ('Generate Report') {
+    when { tag pattern:  "${WORKSPACE}/dependants/${reponame}.json", comparator: 'GLOB'  }
     node {
       updateRepoDirsResults(names)
 //      deleteDir()

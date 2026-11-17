@@ -7,7 +7,6 @@ pipeline {
     environment  {
         HOME = '/home/bobb'
         CURL_PARAMS= "-chainCAfile /certs/SohoBall-Registry-Chain.crt"
-        DOCKER_TLS_VERIFY=0
     }
     options {
         buildDiscarder(logRotator(numToKeepStr: '20'))
@@ -56,7 +55,7 @@ pipeline {
                         find . -name '*.txt' -delete || true
                        '''
                     unstash 'json'
-                    sh 'JSON="registryContents.json" groovy registryReport.groovy'
+                    sh 'DOCKER_TLS_VERIFY=0 JSON="registryContents.json" groovy registryReport.groovy'
                     archiveArtifacts allowEmptyArchive: true, artifacts: '**/*.txt'
                 }
             }
